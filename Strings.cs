@@ -44,5 +44,9 @@ namespace TouchToggle
         public static string StatusDisabled => _isPtBr ? "Touch Desativado" : "Touch Disabled";
         public static string HotkeyLabel(string modifier, string key) =>
             _isPtBr ? $"⌨️  Atalho: {modifier}+{key}" : $"⌨️  Shortcut: {modifier}+{key}";
+
+        // Accessibility
+        public static string AccessibleClose => _isPtBr ? "Fechar" : "Close";
+        public static string AccessibleToggle => _isPtBr ? "Alternar estado do Touchscreen" : "Toggle Touchscreen state";
     }
 }

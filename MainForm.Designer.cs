@@ -70,9 +70,13 @@
                 Location = new System.Drawing.Point(320, 5),
                 Size = new System.Drawing.Size(35, 35),
                 BackColor = System.Drawing.Color.Transparent,
-                Cursor = System.Windows.Forms.Cursors.Hand
+                Cursor = System.Windows.Forms.Cursors.Hand,
+                AccessibleName = Strings.AccessibleClose,
+                AccessibleRole = System.Windows.Forms.AccessibleRole.PushButton
             };
             _btnClose.FlatAppearance.BorderSize = 0;
+            _btnClose.FlatAppearance.MouseOverBackColor = System.Drawing.Color.FromArgb(120, 255, 255, 255);
+            _btnClose.FlatAppearance.MouseDownBackColor = System.Drawing.Color.FromArgb(80, 255, 255, 255);
             _btnClose.Click += (s, e) => this.Hide();
 
             _panelTop.Controls.Add(_lblTitle);
@@ -95,7 +99,9 @@
                 Size = new System.Drawing.Size(110, 110),
                 Location = new System.Drawing.Point(125, 25),
                 BackColor = System.Drawing.Color.FromArgb(0, 120, 215),
-                Cursor = System.Windows.Forms.Cursors.Hand
+                Cursor = System.Windows.Forms.Cursors.Hand,
+                AccessibleName = Strings.AccessibleToggle,
+                AccessibleRole = System.Windows.Forms.AccessibleRole.PushButton
             };
             _btnToggle.FlatAppearance.BorderSize = 0;
 

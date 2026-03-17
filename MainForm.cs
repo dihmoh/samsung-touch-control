@@ -101,6 +101,14 @@ namespace TouchToggle
                 ? Color.FromArgb(0, 120, 215)
                 : Color.FromArgb(180, 0, 0);
 
+            _btnToggle.FlatAppearance.MouseOverBackColor = _touchEnabled
+                ? Color.FromArgb(0, 140, 240)
+                : Color.FromArgb(210, 0, 0);
+
+            _btnToggle.FlatAppearance.MouseDownBackColor = _touchEnabled
+                ? Color.FromArgb(0, 100, 180)
+                : Color.FromArgb(150, 0, 0);
+
             _lblStatus.Text = _touchEnabled
                 ? Strings.StatusEnabled
                 : Strings.StatusDisabled;
