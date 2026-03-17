@@ -11,6 +11,9 @@
         private ToolStripMenuItem _menuStartup;
         private ToolStripMenuItem _menuExit;
 
+        private Icon _iconOn;
+        private Icon _iconOff;
+
         public event Action? OnEnable;
         public event Action? OnDisable;
         public event Action? OnToggle;
@@ -53,6 +56,9 @@
                 Text = Strings.AppName
             };
 
+            _iconOn = CreateIcon("ON", Color.FromArgb(0, 120, 215));
+            _iconOff = CreateIcon("OFF", Color.FromArgb(180, 0, 0));
+
             _notifyIcon.DoubleClick += (s, e) => OnOpenPanel?.Invoke();
             UpdateIcon(true);
         }
@@ -63,9 +69,7 @@
                 ? Strings.TrayEnabled
                 : Strings.TrayDisabled;
 
-            _notifyIcon.Icon = touchEnabled
-                ? CreateIcon("ON", Color.FromArgb(0, 120, 215))
-                : CreateIcon("OFF", Color.FromArgb(180, 0, 0));
+            _notifyIcon.Icon = touchEnabled ? _iconOn : _iconOff;
 
             _menuEnable.Enabled = !touchEnabled;
             _menuDisable.Enabled = touchEnabled;
@@ -108,11 +112,25 @@
             return Icon.FromHandle(bmp.GetHicon());
         }
 
+        [System.Runtime.InteropServices.DllImport("user32.dll", CharSet = System.Runtime.InteropServices.CharSet.Auto)]
+        extern static bool DestroyIcon(IntPtr handle);
+
         public void Dispose()
         {
             _notifyIcon.Visible = false;
             _notifyIcon.Dispose();
             _menu.Dispose();
+
+            if (_iconOn != null)
+            {
+                DestroyIcon(_iconOn.Handle);
+                _iconOn.Dispose();
+            }
+            if (_iconOff != null)
+            {
+                DestroyIcon(_iconOff.Handle);
+                _iconOff.Dispose();
+            }
         }
     }
 }
