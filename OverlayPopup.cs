@@ -4,7 +4,6 @@
     {
         private System.Windows.Forms.Timer _timer = null!;
         private int _opacity100 = 0;
-        private bool _fadingOut = false;
 
         public OverlayPopup(bool touchEnabled)
         {
@@ -113,6 +112,12 @@
                 _timer.Stop();
                 this.Close();
             }
+        }
+
+        protected override void OnFormClosed(FormClosedEventArgs e)
+        {
+            _timer?.Dispose();
+            base.OnFormClosed(e);
         }
 
         public static void ShowPopup(bool touchEnabled)

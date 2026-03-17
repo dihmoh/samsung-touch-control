@@ -90,6 +90,8 @@ namespace TouchToggle
             };
         }
 
+        private Region? _btnToggleRegion;
+
         private void UpdateUI()
         {
             if (_btnToggle == null || _lblStatus == null) return;
@@ -105,9 +107,13 @@ namespace TouchToggle
 
             _lblHotkey.Text = Strings.HotkeyLabel(_config.HotkeyModifier, _config.HotkeyKey);
 
-            var path = new System.Drawing.Drawing2D.GraphicsPath();
-            path.AddEllipse(0, 0, _btnToggle.Width, _btnToggle.Height);
-            _btnToggle.Region = new Region(path);
+            if (_btnToggleRegion == null)
+            {
+                var path = new System.Drawing.Drawing2D.GraphicsPath();
+                path.AddEllipse(0, 0, _btnToggle.Width, _btnToggle.Height);
+                _btnToggleRegion = new Region(path);
+                _btnToggle.Region = _btnToggleRegion;
+            }
         }
 
         private void SetTouch(bool enable)
@@ -157,6 +163,7 @@ namespace TouchToggle
             _config.Save();
             _hotkey?.Unregister();
             _tray.Dispose();
+            _btnToggleRegion?.Dispose();
             Application.Exit();
         }
 
