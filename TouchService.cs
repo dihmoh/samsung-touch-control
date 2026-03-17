@@ -51,7 +51,7 @@ namespace TouchToggle
             try
             {
                 string id = GetInstanceId(config);
-                if (string.IsNullOrEmpty(id)) return null;
+                if (string.IsNullOrEmpty(id) || !IsValidInstanceId(id)) return null;
 
                 string script = $"(Get-PnpDevice -InstanceId '{id}').Status";
                 var result = RunPowerShell(script);
@@ -67,7 +67,7 @@ namespace TouchToggle
             try
             {
                 string id = GetInstanceId(config);
-                if (string.IsNullOrEmpty(id)) return false;
+                if (string.IsNullOrEmpty(id) || !IsValidInstanceId(id)) return false;
 
                 string action = enable ? "Enable-PnpDevice" : "Disable-PnpDevice";
                 string script = $"{action} -InstanceId '{id}' -Confirm:$false";
@@ -81,6 +81,14 @@ namespace TouchToggle
         public bool ToggleTouch(bool currentState, ConfigManager config)
         {
             return SetTouchState(!currentState, config);
+        }
+
+        // Security Enhancement: Validate InstanceId to prevent PowerShell command injection
+        private bool IsValidInstanceId(string id)
+        {
+            // PnP Device IDs typically contain alphanumeric characters, backslashes, ampersands, underscores, and hyphens.
+            // Single quotes, semicolons, and other shell operators are strictly prohibited.
+            return System.Text.RegularExpressions.Regex.IsMatch(id, @"^[A-Za-z0-9\\&_\-\.\:]+$");
         }
 
         private string RunPowerShell(string script)
