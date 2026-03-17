@@ -23,12 +23,12 @@
             _menu = new ContextMenuStrip();
             _menu.Renderer = new ToolStripProfessionalRenderer();
 
-            _menuEnable = new ToolStripMenuItem("✅  Ativar Touch");
-            _menuDisable = new ToolStripMenuItem("🚫  Desativar Touch");
-            _menuToggle = new ToolStripMenuItem("🔄  Alternar Touch");
-            _menuPanel = new ToolStripMenuItem("⚙️  Abrir Painel");
-            _menuStartup = new ToolStripMenuItem("🚀  Iniciar com o Windows");
-            _menuExit = new ToolStripMenuItem("❌  Sair");
+            _menuEnable = new ToolStripMenuItem(Strings.MenuEnable);
+            _menuDisable = new ToolStripMenuItem(Strings.MenuDisable);
+            _menuToggle = new ToolStripMenuItem(Strings.MenuToggle);
+            _menuPanel = new ToolStripMenuItem(Strings.MenuPanel);
+            _menuStartup = new ToolStripMenuItem(Strings.MenuStartup);
+            _menuExit = new ToolStripMenuItem(Strings.MenuExit);
 
             _menuEnable.Click += (s, e) => OnEnable?.Invoke();
             _menuDisable.Click += (s, e) => OnDisable?.Invoke();
@@ -50,7 +50,7 @@
             {
                 ContextMenuStrip = _menu,
                 Visible = true,
-                Text = "Samsung Touch Control"
+                Text = Strings.AppName
             };
 
             _notifyIcon.DoubleClick += (s, e) => OnOpenPanel?.Invoke();
@@ -60,8 +60,8 @@
         public void UpdateIcon(bool touchEnabled)
         {
             _notifyIcon.Text = touchEnabled
-                ? "Samsung Touch Control — Touch Ativado"
-                : "Samsung Touch Control — Touch Desativado";
+                ? Strings.TrayEnabled
+                : Strings.TrayDisabled;
 
             _notifyIcon.Icon = touchEnabled
                 ? CreateIcon("ON", Color.FromArgb(0, 120, 215))
@@ -75,8 +75,8 @@
         {
             _menuStartup.Checked = startupEnabled;
             _menuStartup.Text = startupEnabled
-                ? "🚀  Iniciar com o Windows ✓"
-                : "🚀  Iniciar com o Windows";
+                ? Strings.MenuStartupChecked
+                : Strings.MenuStartup;
         }
 
         public void ShowBalloon(string title, string message, int milliseconds = 3000)

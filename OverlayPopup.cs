@@ -29,8 +29,8 @@
                 screen.Bottom - this.Height - 20);
 
             string emoji = touchEnabled ? "👆" : "🚫";
-            string status = touchEnabled ? "Touch Ativado" : "Touch Desativado";
-            string sub = touchEnabled ? "Touchscreen habilitado" : "Touchscreen desabilitado";
+            string status = touchEnabled ? Strings.PopupEnabled : Strings.PopupDisabled;
+            string sub = touchEnabled ? Strings.PopupSubEnabled : Strings.PopupSubDisabled;
 
             var lblEmoji = new Label
             {

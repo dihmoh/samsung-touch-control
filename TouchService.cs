@@ -4,13 +4,56 @@ namespace TouchToggle
 {
     internal class TouchService
     {
-        private const string InstanceId = "HID\\ELAN902C&COL01\\5&292CAA11&0&0000";
+        private string? _cachedInstanceId = null;
 
-        public bool? GetTouchState()
+        public string? DetectTouchDevice()
         {
             try
             {
-                string script = $"(Get-PnpDevice -InstanceId '{InstanceId}').Status";
+                string script = @"Get-PnpDevice | Where-Object { 
+                    ($_.FriendlyName -like '*touch screen*' -or 
+                     $_.FriendlyName -like '*tela touch*' -or
+                     $_.FriendlyName -like '*touchscreen*') -and
+                    $_.Status -eq 'OK'
+                } | Select-Object -First 1 -ExpandProperty InstanceId";
+
+                string result = RunPowerShell(script);
+                return string.IsNullOrWhiteSpace(result) ? null : result.Trim();
+            }
+            catch { }
+            return null;
+        }
+
+        private string GetInstanceId(ConfigManager config)
+        {
+            if (_cachedInstanceId != null) return _cachedInstanceId;
+
+            if (!string.IsNullOrWhiteSpace(config.DeviceInstanceId))
+            {
+                _cachedInstanceId = config.DeviceInstanceId!;
+                return _cachedInstanceId;
+            }
+
+            string? detected = DetectTouchDevice();
+            if (detected != null)
+            {
+                _cachedInstanceId = detected;
+                config.DeviceInstanceId = detected;
+                config.Save();
+                return _cachedInstanceId;
+            }
+
+            return string.Empty;
+        }
+
+        public bool? GetTouchState(ConfigManager config)
+        {
+            try
+            {
+                string id = GetInstanceId(config);
+                if (string.IsNullOrEmpty(id)) return null;
+
+                string script = $"(Get-PnpDevice -InstanceId '{id}').Status";
                 var result = RunPowerShell(script);
                 if (result.Contains("OK")) return true;
                 if (result.Contains("Error") || result.Contains("Disabled") || result.Contains("Unknown")) return false;
@@ -19,12 +62,15 @@ namespace TouchToggle
             return null;
         }
 
-        public bool SetTouchState(bool enable)
+        public bool SetTouchState(bool enable, ConfigManager config)
         {
             try
             {
+                string id = GetInstanceId(config);
+                if (string.IsNullOrEmpty(id)) return false;
+
                 string action = enable ? "Enable-PnpDevice" : "Disable-PnpDevice";
-                string script = $"{action} -InstanceId '{InstanceId}' -Confirm:$false";
+                string script = $"{action} -InstanceId '{id}' -Confirm:$false";
                 int exitCode = RunPowerShellElevated(script);
                 return exitCode == 0;
             }
@@ -32,9 +78,9 @@ namespace TouchToggle
             return false;
         }
 
-        public bool ToggleTouch(bool currentState)
+        public bool ToggleTouch(bool currentState, ConfigManager config)
         {
-            return SetTouchState(!currentState);
+            return SetTouchState(!currentState, config);
         }
 
         private string RunPowerShell(string script)
@@ -56,7 +102,6 @@ namespace TouchToggle
 
         private int RunPowerShellElevated(string script)
         {
-            // Tenta primeiro sem elevação (se já for admin)
             try
             {
                 var psi = new ProcessStartInfo
@@ -75,7 +120,6 @@ namespace TouchToggle
             }
             catch { }
 
-            // Se falhar, tenta com elevação
             try
             {
                 var psi = new ProcessStartInfo

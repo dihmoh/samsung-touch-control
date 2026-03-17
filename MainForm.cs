@@ -17,7 +17,6 @@ namespace TouchToggle
 
         private void InitializeApp()
         {
-            // Ícone da janela
             try
             {
                 string iconPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "app.ico");
@@ -38,7 +37,7 @@ namespace TouchToggle
             _touch = new TouchService();
             _tray = new TrayManager();
 
-            var realState = _touch.GetTouchState();
+            var realState = _touch.GetTouchState(_config);
             _touchEnabled = realState ?? _config.TouchEnabled;
             _config.TouchEnabled = _touchEnabled;
             _config.Save();
@@ -68,11 +67,11 @@ namespace TouchToggle
                 this.Invoke(() =>
                 {
                     if (ok)
-                        _tray.ShowBalloon("Samsung Touch Control iniciado!",
-                            $"Atalho: {_config.HotkeyModifier}+{_config.HotkeyKey}");
+                        _tray.ShowBalloon(Strings.BalloonStarted,
+                            Strings.BalloonHotkey(_config.HotkeyModifier, _config.HotkeyKey));
                     else
-                        _tray.ShowBalloon("Samsung Touch Control",
-                            "Atalho não pôde ser registrado.");
+                        _tray.ShowBalloon(Strings.AppName,
+                            Strings.BalloonHotkeyFailed);
                 });
             });
         }
@@ -101,10 +100,10 @@ namespace TouchToggle
                 : Color.FromArgb(180, 0, 0);
 
             _lblStatus.Text = _touchEnabled
-                ? "Touch Ativado"
-                : "Touch Desativado";
+                ? Strings.StatusEnabled
+                : Strings.StatusDisabled;
 
-            _lblHotkey.Text = $"⌨️  Atalho: {_config.HotkeyModifier}+{_config.HotkeyKey}";
+            _lblHotkey.Text = Strings.HotkeyLabel(_config.HotkeyModifier, _config.HotkeyKey);
 
             var path = new System.Drawing.Drawing2D.GraphicsPath();
             path.AddEllipse(0, 0, _btnToggle.Width, _btnToggle.Height);
@@ -113,7 +112,7 @@ namespace TouchToggle
 
         private void SetTouch(bool enable)
         {
-            bool success = _touch.SetTouchState(enable);
+            bool success = _touch.SetTouchState(enable, _config);
             if (success)
             {
                 _touchEnabled = enable;
@@ -137,10 +136,10 @@ namespace TouchToggle
             if (success)
             {
                 _tray.UpdateStartupMenu(!current);
-                _tray.ShowBalloon("Samsung Touch Control",
+                _tray.ShowBalloon(Strings.AppName,
                     !current
-                        ? "✅ Será iniciado com o Windows!"
-                        : "❌ Removido da inicialização do Windows.");
+                        ? Strings.BalloonStartupOn
+                        : Strings.BalloonStartupOff);
             }
         }
 

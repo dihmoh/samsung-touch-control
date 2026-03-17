@@ -16,6 +16,7 @@ namespace TouchToggle
         public string HotkeyModifier { get; set; } = "Ctrl+Alt";
         public string HotkeyKey { get; set; } = "T";
         public bool StartWithWindows { get; set; } = false;
+        public string? DeviceInstanceId { get; set; } = null;
 
         public static ConfigManager Load()
         {

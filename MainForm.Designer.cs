@@ -32,7 +32,7 @@
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.BackColor = System.Drawing.Color.FromArgb(24, 24, 24);
             this.Name = "MainForm";
-            this.Text = "Samsung Touch Control";
+            this.Text = Strings.AppName;
 
             _panelTop = new Panel
             {
@@ -43,7 +43,7 @@
 
             _lblTitle = new Label
             {
-                Text = "Samsung Touch Control",
+                Text = Strings.AppName,
                 Font = new System.Drawing.Font("Segoe UI", 14f, System.Drawing.FontStyle.Bold),
                 ForeColor = System.Drawing.Color.White,
                 Location = new System.Drawing.Point(15, 8),
@@ -53,7 +53,7 @@
 
             _lblSubtitle = new Label
             {
-                Text = "Samsung Galaxy Book 3 360",
+                Text = Strings.Subtitle,
                 Font = new System.Drawing.Font("Segoe UI", 8f),
                 ForeColor = System.Drawing.Color.FromArgb(200, 230, 255),
                 Location = new System.Drawing.Point(17, 38),
@@ -101,7 +101,7 @@
 
             _lblStatus = new Label
             {
-                Text = "Touch Ativado",
+                Text = Strings.StatusEnabled,
                 Font = new System.Drawing.Font("Segoe UI", 10f),
                 ForeColor = System.Drawing.Color.FromArgb(180, 180, 180),
                 Location = new System.Drawing.Point(0, 140),
@@ -121,7 +121,7 @@
 
             _lblHotkey = new Label
             {
-                Text = "⌨️  Atalho: Ctrl+Alt+T",
+                Text = Strings.HotkeyLabel("Ctrl+Alt", "T"),
                 Font = new System.Drawing.Font("Segoe UI", 9f),
                 ForeColor = System.Drawing.Color.FromArgb(140, 140, 140),
                 Location = new System.Drawing.Point(0, 0),
