@@ -32,7 +32,6 @@ namespace TouchToggle
             _config = ConfigManager.Load();
             _config.HotkeyModifier = "Ctrl+Alt";
             _config.HotkeyKey = "T";
-            _config.Save();
 
             _touch = new TouchService();
             _tray = new TrayManager();

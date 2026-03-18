@@ -1,10 +1,15 @@
 ﻿using System.Diagnostics;
+using System.Text.RegularExpressions;
 
 namespace TouchToggle
 {
     internal class TouchService
     {
         private string? _cachedInstanceId = null;
+
+        // ⚡ Compiled regex avoids recompiling the pattern on every call to IsValidInstanceId.
+        private static readonly Regex _instanceIdRegex =
+            new(@"^[A-Za-z0-9\\&_\-\.\:]+$", RegexOptions.Compiled);
 
         public string? DetectTouchDevice()
         {
@@ -67,11 +72,11 @@ namespace TouchToggle
 
         public bool? GetTouchState(ConfigManager config)
         {
+            string id = GetInstanceId(config);
+            if (string.IsNullOrEmpty(id) || !IsValidInstanceId(id)) return null;
+
             try
             {
-                string id = GetInstanceId(config);
-                if (string.IsNullOrEmpty(id) || !IsValidInstanceId(id)) return null;
-
                 // ⚡ Bolt: Using direct WMI query instead of launching a new powershell process
                 // This reduces app startup time as checking the touch state takes ~20ms instead of ~1000ms.
 #pragma warning disable CA1416 // Validate platform compatibility
@@ -95,9 +100,6 @@ namespace TouchToggle
                 // Fallback to powershell if WMI fails
                 try
                 {
-                    string id = GetInstanceId(config);
-                    if (string.IsNullOrEmpty(id) || !IsValidInstanceId(id)) return null;
-
                     string script = $"(Get-PnpDevice -InstanceId '{id}').Status";
                     var result = RunPowerShell(script);
                     if (result.Contains("OK")) return true;
@@ -134,7 +136,7 @@ namespace TouchToggle
         {
             // PnP Device IDs typically contain alphanumeric characters, backslashes, ampersands, underscores, and hyphens.
             // Single quotes, semicolons, and other shell operators are strictly prohibited.
-            return System.Text.RegularExpressions.Regex.IsMatch(id, @"^[A-Za-z0-9\\&_\-\.\:]+$");
+            return _instanceIdRegex.IsMatch(id);
         }
 
         private string RunPowerShell(string script)

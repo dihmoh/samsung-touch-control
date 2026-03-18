@@ -5,6 +5,9 @@ namespace TouchToggle
 {
     internal class ConfigManager
     {
+        private static readonly JsonSerializerOptions _jsonOptions =
+            new() { WriteIndented = true };
+
         private static readonly string ConfigPath = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
             "SamsungTouchControl", "config.json");
@@ -37,7 +40,7 @@ namespace TouchToggle
             try
             {
                 Directory.CreateDirectory(Path.GetDirectoryName(ConfigPath)!);
-                string json = JsonSerializer.Serialize(this, new JsonSerializerOptions { WriteIndented = true });
+                string json = JsonSerializer.Serialize(this, _jsonOptions);
                 File.WriteAllText(ConfigPath, json);
             }
             catch { }
