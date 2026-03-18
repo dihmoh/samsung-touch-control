@@ -1,6 +1,6 @@
 # Samsung Touch Control
 
-> ⚡ Este projeto foi 100% vibe coded com auxílio de IA (Claude - Anthropic). Code review e correções por Jules (Google AI). Ideia e direção por DihMoh.
+> ⚡ Este projeto foi vibe coded com auxílio de IA (Claude - Anthropic). Code review e correções por Jules (Google AI). Ideia e direção por DihMoh.
 
 Utilitário leve para controlar o touchscreen de notebooks Samsung diretamente pela bandeja do sistema.
 
