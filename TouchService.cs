@@ -12,20 +12,14 @@ namespace TouchToggle
             {
                 // ⚡ Bolt: Using direct WMI query instead of launching a new powershell process
                 // This reduces detection time from ~1000ms to ~20ms and saves significant system resources.
+                // ⚡ Bolt: Using server-side WQL filtering to minimize COM object instantiation and IPC overhead.
 #pragma warning disable CA1416 // Validate platform compatibility
                 using var searcher = new System.Management.ManagementObjectSearcher(
-                    "SELECT DeviceID, Name FROM Win32_PnPEntity WHERE Status = 'OK'");
+                    "SELECT DeviceID FROM Win32_PnPEntity WHERE Status = 'OK' AND (Name LIKE '%touch screen%' OR Name LIKE '%tela touch%' OR Name LIKE '%touchscreen%')");
 
                 foreach (System.Management.ManagementObject device in searcher.Get())
                 {
-                    string? name = device["Name"]?.ToString()?.ToLowerInvariant();
-                    if (name != null &&
-                        (name.Contains("touch screen") ||
-                         name.Contains("tela touch") ||
-                         name.Contains("touchscreen")))
-                    {
-                        return device["DeviceID"]?.ToString();
-                    }
+                    return device["DeviceID"]?.ToString();
                 }
 #pragma warning restore CA1416
             }
