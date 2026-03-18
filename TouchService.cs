@@ -102,7 +102,7 @@ namespace TouchToggle
                 try
                 {
                     string id = GetInstanceId(config);
-                    if (string.IsNullOrEmpty(id)) return null;
+                    if (string.IsNullOrEmpty(id) || !IsValidInstanceId(id)) return null;
 
                     string script = $"(Get-PnpDevice -InstanceId '{id}').Status";
                     var result = RunPowerShell(script);
