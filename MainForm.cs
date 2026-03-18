@@ -109,6 +109,10 @@ namespace TouchToggle
                 ? Color.FromArgb(0, 100, 180)
                 : Color.FromArgb(150, 0, 0);
 
+            _btnToggle.AccessibleDescription = _touchEnabled
+                ? Strings.StatusEnabled
+                : Strings.StatusDisabled;
+
             _lblStatus.Text = _touchEnabled
                 ? Strings.StatusEnabled
                 : Strings.StatusDisabled;
