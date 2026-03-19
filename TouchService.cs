@@ -115,6 +115,24 @@ namespace TouchToggle
                 string id = GetInstanceId(config);
                 if (string.IsNullOrEmpty(id) || !IsValidInstanceId(id)) return false;
 
+                // ⚡ Bolt: Using direct WMI method invocation to Enable/Disable PnP devices
+                // This eliminates the need to spawn a slow powershell.exe process and vastly improves hotpath toggle performance
+                try
+                {
+                    string queryId = id.Replace("\\", "\\\\");
+#pragma warning disable CA1416 // Validate platform compatibility
+                    using var searcher = new System.Management.ManagementObjectSearcher($"SELECT * FROM Win32_PnPEntity WHERE DeviceID = '{queryId}'");
+                    foreach (System.Management.ManagementObject device in searcher.Get())
+                    {
+                        string methodName = enable ? "Enable" : "Disable";
+                        var result = device.InvokeMethod(methodName, null);
+                        if (result != null && result.ToString() == "0") return true;
+                    }
+#pragma warning restore CA1416
+                }
+                catch { }
+
+                // Fallback to PowerShell if WMI fails or requires elevation that WMI can't handle
                 string action = enable ? "Enable-PnpDevice" : "Disable-PnpDevice";
                 string script = $"{action} -InstanceId '{id}' -Confirm:$false";
                 int exitCode = RunPowerShellElevated(script);
