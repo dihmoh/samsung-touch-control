@@ -137,11 +137,14 @@ namespace TouchToggle
             return System.Text.RegularExpressions.Regex.IsMatch(id, @"^[A-Za-z0-9\\&_\-\.\:]+$");
         }
 
+        // Security Enhancement: Use absolute path for powershell to prevent binary planting / path interception
+        private readonly string _powerShellPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.System), @"WindowsPowerShell\v1.0\powershell.exe");
+
         private string RunPowerShell(string script)
         {
             var psi = new ProcessStartInfo
             {
-                FileName = "powershell.exe",
+                FileName = _powerShellPath,
                 Arguments = $"-NoProfile -NonInteractive -Command \"{script}\"",
                 RedirectStandardOutput = true,
                 UseShellExecute = false,
@@ -160,7 +163,7 @@ namespace TouchToggle
             {
                 var psi = new ProcessStartInfo
                 {
-                    FileName = "powershell.exe",
+                    FileName = _powerShellPath,
                     Arguments = $"-NoProfile -NonInteractive -Command \"{script}\"",
                     UseShellExecute = false,
                     CreateNoWindow = true,
@@ -178,7 +181,7 @@ namespace TouchToggle
             {
                 var psi = new ProcessStartInfo
                 {
-                    FileName = "powershell.exe",
+                    FileName = _powerShellPath,
                     Arguments = $"-NoProfile -NonInteractive -Command \"{script}\"",
                     UseShellExecute = true,
                     Verb = "runas",
