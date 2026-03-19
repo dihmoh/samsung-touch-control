@@ -80,7 +80,7 @@ namespace TouchToggle
         {
             _btnToggle.Click += (s, e) => ToggleTouch();
 
-            _panelTop.MouseDown += (s, e) =>
+            MouseEventHandler dragHandler = (s, e) =>
             {
                 if (e.Button == MouseButtons.Left)
                 {
@@ -88,6 +88,10 @@ namespace TouchToggle
                     NativeMethods.SendMessage(this.Handle, 0xA1, 2, 0);
                 }
             };
+
+            _panelTop.MouseDown += dragHandler;
+            _lblTitle.MouseDown += dragHandler;
+            _lblSubtitle.MouseDown += dragHandler;
         }
 
         private Region? _btnToggleRegion;
@@ -198,6 +202,18 @@ namespace TouchToggle
             {
                 base.OnFormClosing(e);
             }
+        }
+
+        protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
+        {
+            if (keyData == Keys.Escape)
+            {
+                this.Hide();
+                this.ShowInTaskbar = false;
+                this.Opacity = 0;
+                return true;
+            }
+            return base.ProcessCmdKey(ref msg, keyData);
         }
     }
 
