@@ -1,4 +1,6 @@
-﻿namespace TouchToggle
+﻿using Microsoft.Web.WebView2.WinForms;
+
+namespace TouchToggle
 {
     partial class MainForm
     {
@@ -6,12 +8,14 @@
         private Panel _panelTop;
         private Label _lblTitle;
         private Label _lblSubtitle;
+        private Button _btnClose;
         private Panel _panelCenter;
         private Button _btnToggle;
         private Label _lblStatus;
         private Panel _panelBottom;
         private Label _lblHotkey;
-        private Button _btnClose;
+        private Panel _cardCenter;
+        private WebView2 _webView;
 
         protected override void Dispose(bool disposing)
         {
@@ -27,116 +31,33 @@
 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(360, 280);
+            this.ClientSize = new System.Drawing.Size(360, 480);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
-            this.BackColor = System.Drawing.Color.FromArgb(24, 24, 24);
+            this.BackColor = System.Drawing.Color.FromArgb(26, 26, 46);
             this.Name = "MainForm";
             this.Text = Strings.AppName;
 
-            _panelTop = new Panel
+            _webView = new WebView2
             {
-                BackColor = System.Drawing.Color.FromArgb(0, 120, 215),
                 Location = new System.Drawing.Point(0, 0),
-                Size = new System.Drawing.Size(360, 60)
+                Size = new System.Drawing.Size(360, 480),
+                Dock = System.Windows.Forms.DockStyle.Fill
             };
 
-            _lblTitle = new Label
-            {
-                Text = Strings.AppName,
-                Font = new System.Drawing.Font("Segoe UI", 14f, System.Drawing.FontStyle.Bold),
-                ForeColor = System.Drawing.Color.White,
-                Location = new System.Drawing.Point(15, 8),
-                Size = new System.Drawing.Size(300, 32),
-                TextAlign = System.Drawing.ContentAlignment.MiddleLeft
-            };
+            // Controles ocultos — mantidos para compatibilidade com MainForm.cs
+            _panelTop = new Panel { Visible = false, Size = new System.Drawing.Size(1, 1) };
+            _lblTitle = new Label { Visible = false };
+            _lblSubtitle = new Label { Visible = false };
+            _btnClose = new Button { Visible = false };
+            _panelCenter = new Panel { Visible = false, Size = new System.Drawing.Size(1, 1) };
+            _cardCenter = new Panel { Visible = false, Size = new System.Drawing.Size(1, 1) };
+            _btnToggle = new Button { Visible = false };
+            _lblStatus = new Label { Visible = false };
+            _panelBottom = new Panel { Visible = false, Size = new System.Drawing.Size(1, 1) };
+            _lblHotkey = new Label { Visible = false };
 
-            _lblSubtitle = new Label
-            {
-                Text = Strings.Subtitle,
-                Font = new System.Drawing.Font("Segoe UI", 8f),
-                ForeColor = System.Drawing.Color.FromArgb(200, 230, 255),
-                Location = new System.Drawing.Point(17, 38),
-                Size = new System.Drawing.Size(250, 16),
-                TextAlign = System.Drawing.ContentAlignment.MiddleLeft
-            };
-
-            _btnClose = new Button
-            {
-                Text = "✕",
-                Font = new System.Drawing.Font("Segoe UI", 12f),
-                ForeColor = System.Drawing.Color.White,
-                FlatStyle = System.Windows.Forms.FlatStyle.Flat,
-                Location = new System.Drawing.Point(320, 5),
-                Size = new System.Drawing.Size(35, 35),
-                BackColor = System.Drawing.Color.Transparent,
-                Cursor = System.Windows.Forms.Cursors.Hand,
-                AccessibleName = Strings.AccessibleClose,
-                AccessibleRole = System.Windows.Forms.AccessibleRole.PushButton
-            };
-            _btnClose.FlatAppearance.BorderSize = 0;
-            _btnClose.FlatAppearance.MouseOverBackColor = System.Drawing.Color.FromArgb(120, 255, 255, 255);
-            _btnClose.FlatAppearance.MouseDownBackColor = System.Drawing.Color.FromArgb(80, 255, 255, 255);
-            _btnClose.Click += (s, e) => this.Hide();
-
-            _panelTop.Controls.Add(_lblTitle);
-            _panelTop.Controls.Add(_lblSubtitle);
-            _panelTop.Controls.Add(_btnClose);
-
-            _panelCenter = new Panel
-            {
-                BackColor = System.Drawing.Color.FromArgb(24, 24, 24),
-                Location = new System.Drawing.Point(0, 60),
-                Size = new System.Drawing.Size(360, 160)
-            };
-
-            _btnToggle = new Button
-            {
-                Text = "ON",
-                Font = new System.Drawing.Font("Segoe UI", 22f, System.Drawing.FontStyle.Bold),
-                ForeColor = System.Drawing.Color.White,
-                FlatStyle = System.Windows.Forms.FlatStyle.Flat,
-                Size = new System.Drawing.Size(110, 110),
-                Location = new System.Drawing.Point(125, 25),
-                BackColor = System.Drawing.Color.FromArgb(0, 120, 215),
-                Cursor = System.Windows.Forms.Cursors.Hand,
-                AccessibleName = Strings.AccessibleToggle,
-                AccessibleRole = System.Windows.Forms.AccessibleRole.PushButton
-            };
-            _btnToggle.FlatAppearance.BorderSize = 0;
-
-            _lblStatus = new Label
-            {
-                Text = Strings.StatusEnabled,
-                Font = new System.Drawing.Font("Segoe UI", 10f),
-                ForeColor = System.Drawing.Color.FromArgb(180, 180, 180),
-                Location = new System.Drawing.Point(0, 140),
-                Size = new System.Drawing.Size(360, 20),
-                TextAlign = System.Drawing.ContentAlignment.MiddleCenter
-            };
-
-            _panelCenter.Controls.Add(_btnToggle);
-            _panelCenter.Controls.Add(_lblStatus);
-
-            _panelBottom = new Panel
-            {
-                BackColor = System.Drawing.Color.FromArgb(18, 18, 18),
-                Location = new System.Drawing.Point(0, 220),
-                Size = new System.Drawing.Size(360, 60)
-            };
-
-            _lblHotkey = new Label
-            {
-                Text = Strings.HotkeyLabel("Ctrl+Alt", "T"),
-                Font = new System.Drawing.Font("Segoe UI", 9f),
-                ForeColor = System.Drawing.Color.FromArgb(140, 140, 140),
-                Location = new System.Drawing.Point(0, 0),
-                Size = new System.Drawing.Size(360, 60),
-                TextAlign = System.Drawing.ContentAlignment.MiddleCenter
-            };
-
-            _panelBottom.Controls.Add(_lblHotkey);
-
+            this.Controls.Add(_webView);
             this.Controls.Add(_panelTop);
             this.Controls.Add(_panelCenter);
             this.Controls.Add(_panelBottom);

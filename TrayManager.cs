@@ -56,8 +56,8 @@
                 Text = Strings.AppName
             };
 
-            _iconOn = CreateIcon("ON", Color.FromArgb(0, 120, 215));
-            _iconOff = CreateIcon("OFF", Color.FromArgb(180, 0, 0));
+            _iconOn = CreateTouchIcon(ColorTranslator.FromHtml("#40C057"), true);
+            _iconOff = CreateTouchIcon(ColorTranslator.FromHtml("#ff5050"), false);
 
             _notifyIcon.DoubleClick += (s, e) => OnOpenPanel?.Invoke();
             UpdateIcon(true);
@@ -91,28 +91,44 @@
             _notifyIcon.ShowBalloonTip(milliseconds);
         }
 
-        private Icon CreateIcon(string text, Color bgColor)
+        private static Icon CreateTouchIcon(Color mainColor, bool enabled)
         {
             var bmp = new Bitmap(32, 32);
             using var g = Graphics.FromImage(bmp);
+            g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
             g.Clear(Color.Transparent);
 
-            using var brush = new SolidBrush(bgColor);
-            g.FillEllipse(brush, 1, 1, 30, 30);
+            // Desenhar botão on/off (pill / switch toggle)
+            using var mainBrush = new SolidBrush(mainColor);
+            
+            // Fundo "pill" (arredondado)
+            var path = new System.Drawing.Drawing2D.GraphicsPath();
+            int h = 18;
+            int w = 30;
+            int y = 7;
+            int x = 1;
+            path.AddArc(x, y, h, h, 90, 180);
+            path.AddArc(x + w - h, y, h, h, 270, 180);
+            path.CloseFigure();
 
-            using var font = new Font("Arial", text == "ON" ? 10f : 8f, FontStyle.Bold);
-            using var textBrush = new SolidBrush(Color.White);
-            var sf = new StringFormat
+            g.FillPath(mainBrush, path);
+
+            // Círculo interno branco ("knob")
+            using var whiteBrush = new SolidBrush(Color.White);
+            if (enabled)
             {
-                Alignment = StringAlignment.Center,
-                LineAlignment = StringAlignment.Center
-            };
-            g.DrawString(text, font, textBrush, new RectangleF(0, 0, 32, 32), sf);
+                g.FillEllipse(whiteBrush, x + w - h + 2, y + 2, h - 4, h - 4);
+            }
+            else
+            {
+                g.FillEllipse(whiteBrush, x + 2, y + 2, h - 4, h - 4);
+            }
 
             return Icon.FromHandle(bmp.GetHicon());
         }
 
-        [System.Runtime.InteropServices.DllImport("user32.dll", CharSet = System.Runtime.InteropServices.CharSet.Auto)]
+        [System.Runtime.InteropServices.DllImport("user32.dll",
+            CharSet = System.Runtime.InteropServices.CharSet.Auto)]
         extern static bool DestroyIcon(IntPtr handle);
 
         public void Dispose()
@@ -121,16 +137,24 @@
             _notifyIcon.Dispose();
             _menu.Dispose();
 
-            if (_iconOn != null)
-            {
-                DestroyIcon(_iconOn.Handle);
-                _iconOn.Dispose();
-            }
-            if (_iconOff != null)
-            {
-                DestroyIcon(_iconOff.Handle);
-                _iconOff.Dispose();
-            }
+            if (_iconOn != null) { DestroyIcon(_iconOn.Handle); _iconOn.Dispose(); }
+            if (_iconOff != null) { DestroyIcon(_iconOff.Handle); _iconOff.Dispose(); }
+        }
+    }
+
+    internal static class GraphicsExtensions
+    {
+        public static void FillRoundedRectangle(
+            this Graphics g, Brush brush,
+            float x, float y, float w, float h, float r)
+        {
+            using var path = new System.Drawing.Drawing2D.GraphicsPath();
+            path.AddArc(x, y, r * 2, r * 2, 180, 90);
+            path.AddArc(x + w - r * 2, y, r * 2, r * 2, 270, 90);
+            path.AddArc(x + w - r * 2, y + h - r * 2, r * 2, r * 2, 0, 90);
+            path.AddArc(x, y + h - r * 2, r * 2, r * 2, 90, 90);
+            path.CloseFigure();
+            g.FillPath(brush, path);
         }
     }
 }

@@ -121,7 +121,7 @@ namespace TouchToggle
                 {
                     string queryId = id.Replace("\\", "\\\\");
 #pragma warning disable CA1416 // Validate platform compatibility
-                    using var searcher = new System.Management.ManagementObjectSearcher($"SELECT * FROM Win32_PnPEntity WHERE DeviceID = '{queryId}'");
+                    using var searcher = new System.Management.ManagementObjectSearcher($"SELECT * FROM Win32_PnPDevice WHERE DeviceID = '{queryId}'");
                     foreach (System.Management.ManagementObject device in searcher.Get())
                     {
                         string methodName = enable ? "Enable" : "Disable";
