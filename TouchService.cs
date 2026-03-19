@@ -10,10 +10,7 @@ namespace TouchToggle
         {
             try
             {
-                // ⚡ Bolt: Using direct WMI query instead of launching a new powershell process
-                // This reduces detection time from ~1000ms to ~20ms and saves significant system resources.
-                // ⚡ Bolt: Using server-side WQL filtering to minimize COM object instantiation and IPC overhead.
-#pragma warning disable CA1416 // Validate platform compatibility
+#pragma warning disable CA1416
                 using var searcher = new System.Management.ManagementObjectSearcher(
                     "SELECT DeviceID FROM Win32_PnPEntity WHERE Status = 'OK' AND (Name LIKE '%touch screen%' OR Name LIKE '%tela touch%' OR Name LIKE '%touchscreen%')");
 
@@ -25,7 +22,6 @@ namespace TouchToggle
             }
             catch
             {
-                // Fallback to powershell if WMI fails
                 try
                 {
                     string script = @"Get-PnpDevice | Where-Object {
@@ -72,9 +68,7 @@ namespace TouchToggle
                 string id = GetInstanceId(config);
                 if (string.IsNullOrEmpty(id) || !IsValidInstanceId(id)) return null;
 
-                // ⚡ Bolt: Using direct WMI query instead of launching a new powershell process
-                // This reduces app startup time as checking the touch state takes ~20ms instead of ~1000ms.
-#pragma warning disable CA1416 // Validate platform compatibility
+#pragma warning disable CA1416
                 string queryId = id.Replace("\\", "\\\\");
                 using var searcher = new System.Management.ManagementObjectSearcher(
                     $"SELECT Status FROM Win32_PnPEntity WHERE DeviceID = '{queryId}'");
@@ -92,7 +86,6 @@ namespace TouchToggle
             }
             catch
             {
-                // Fallback to powershell if WMI fails
                 try
                 {
                     string id = GetInstanceId(config);
@@ -115,13 +108,15 @@ namespace TouchToggle
                 string id = GetInstanceId(config);
                 if (string.IsNullOrEmpty(id) || !IsValidInstanceId(id)) return false;
 
-                // ⚡ Bolt: Using direct WMI method invocation to Enable/Disable PnP devices
-                // This eliminates the need to spawn a slow powershell.exe process and vastly improves hotpath toggle performance
+                // Limpa o cache para forçar re-detecção após mudança de estado
+                _cachedInstanceId = null;
+
                 try
                 {
                     string queryId = id.Replace("\\", "\\\\");
-#pragma warning disable CA1416 // Validate platform compatibility
-                    using var searcher = new System.Management.ManagementObjectSearcher($"SELECT * FROM Win32_PnPDevice WHERE DeviceID = '{queryId}'");
+#pragma warning disable CA1416
+                    using var searcher = new System.Management.ManagementObjectSearcher(
+                        $"SELECT * FROM Win32_PnPDevice WHERE DeviceID = '{queryId}'");
                     foreach (System.Management.ManagementObject device in searcher.Get())
                     {
                         string methodName = enable ? "Enable" : "Disable";
@@ -132,7 +127,6 @@ namespace TouchToggle
                 }
                 catch { }
 
-                // Fallback to PowerShell if WMI fails or requires elevation that WMI can't handle
                 string action = enable ? "Enable-PnpDevice" : "Disable-PnpDevice";
                 string script = $"{action} -InstanceId '{id}' -Confirm:$false";
                 int exitCode = RunPowerShellElevated(script);
@@ -147,16 +141,14 @@ namespace TouchToggle
             return SetTouchState(!currentState, config);
         }
 
-        // Security Enhancement: Validate InstanceId to prevent PowerShell command injection
         private bool IsValidInstanceId(string id)
         {
-            // PnP Device IDs typically contain alphanumeric characters, backslashes, ampersands, underscores, and hyphens.
-            // Single quotes, semicolons, and other shell operators are strictly prohibited.
             return System.Text.RegularExpressions.Regex.IsMatch(id, @"^[A-Za-z0-9\\&_\-\.\:]+$");
         }
 
-        // Security Enhancement: Use absolute path for powershell to prevent binary planting / path interception
-        private readonly string _powerShellPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.System), @"WindowsPowerShell\v1.0\powershell.exe");
+        private readonly string _powerShellPath = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.System),
+            @"WindowsPowerShell\v1.0\powershell.exe");
 
         private string RunPowerShell(string script)
         {

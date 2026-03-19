@@ -49,6 +49,18 @@ namespace TouchToggle
 
             var realState = _touch.GetTouchState(_config);
             _touchEnabled = realState ?? _config.TouchEnabled;
+
+            // ✅ CORREÇÃO: Sempre reativa o touch ao iniciar
+            // Evita que o Windows mantenha o touch desativado após reiniciar
+            if (!_touchEnabled)
+            {
+                bool restored = _touch.SetTouchState(true, _config);
+                if (restored)
+                {
+                    _touchEnabled = true;
+                }
+            }
+
             _config.TouchEnabled = _touchEnabled;
             _config.Save();
 
@@ -67,7 +79,6 @@ namespace TouchToggle
         {
             try
             {
-                // Configura pasta de dados do WebView2 para fora do Arquivos de Programas
                 string userDataFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "TouchToggle", "WebView2");
                 var env = await Microsoft.Web.WebView2.Core.CoreWebView2Environment.CreateAsync(null, userDataFolder);
                 await _webView.EnsureCoreWebView2Async(env);
@@ -84,9 +95,9 @@ namespace TouchToggle
             catch (Exception ex)
             {
                 MessageBox.Show(
-                    "Erro ao carregar a interface (WebView2).\n" + ex.Message, 
-                    "Componente Ausente", 
-                    MessageBoxButtons.OK, 
+                    "Erro ao carregar a interface (WebView2).\n" + ex.Message,
+                    "Componente Ausente",
+                    MessageBoxButtons.OK,
                     MessageBoxIcon.Warning);
             }
         }
@@ -94,12 +105,15 @@ namespace TouchToggle
         private void LoadPanel()
         {
             bool on = _touchEnabled;
-            // Usar um cinza/grafite para a header e botão quando OFF, para destacar o ícone vermelho
             string accentColor = on ? "#1259c3" : "#2c2c4d";
             string statusText = on ? Strings.StatusEnabled : Strings.StatusDisabled;
             string statusColor = on ? "#64a0ff" : "#dc5050";
-            string hotkeyText = Strings.HotkeyLabel(_config.HotkeyModifier, _config.HotkeyKey).Replace("⌨️  Atalho: ", "Atalho: ").Replace("⌨️  Shortcut: ", "Shortcut: ");
+            string hotkeyText = Strings.HotkeyLabel(_config.HotkeyModifier, _config.HotkeyKey)
+                .Replace("⌨️  Atalho: ", "Atalho: ")
+                .Replace("⌨️  Shortcut: ", "Shortcut: ");
             string touchIcon = on ? GetTouchIconSvg() : GetTouchOffIconSvg();
+            string startupBg = _config.GetStartWithWindows() ? "#1259c3" : "rgba(255,255,255,0.2)";
+            string knobLeft = _config.GetStartWithWindows() ? "23px" : "3px";
 
             string html = $@"<!DOCTYPE html>
 <html>
@@ -125,7 +139,6 @@ namespace TouchToggle
     display: flex;
     align-items: center;
     padding: 0 20px;
-    position: relative;
     transition: background 0.3s ease;
     -webkit-app-region: drag;
   }}
@@ -147,78 +160,75 @@ namespace TouchToggle
   .btn-close:active {{ background: rgba(255,255,255,0.35); }}
 
   .content-area {{
-    padding: 20px; flex: 1; display: flex; flex-direction: column; gap: 16px;
-    align-items: stretch; justify-content: flex-start;
+    padding: 16px; flex: 1; display: flex; flex-direction: column; gap: 12px;
   }}
 
   .card {{
     background: #252542;
     border-radius: 18px;
     padding: 20px;
-    position: relative;
-    transition: background 0.2s;
   }}
 
   .card-main {{
-    display: flex; flex-direction: column; align-items: center; justify-content: flex-start; gap: 16px;
-    padding-top: 32px; padding-bottom: 24px; flex: 1;
+    display: flex; flex-direction: column; align-items: center; gap: 16px;
+    padding-top: 28px; padding-bottom: 20px;
   }}
 
   .ring-container {{
-    position: relative;
     width: 140px; height: 140px;
-    display: flex; align-items: center; justify-content: center; flex-direction: column;
+    display: flex; align-items: center; justify-content: center;
     border-radius: 50%;
     border: 2px solid {statusColor}44;
-    transition: border-color 0.3s ease;
   }}
 
   .btn-toggle {{
-    width: 100px; height: 100px;
+    width: 110px; height: 110px;
     border-radius: 50%;
     background: {accentColor};
     border: none; cursor: pointer;
     display: flex; align-items: center; justify-content: center;
     transition: background 0.3s, transform 0.1s;
-    flex-shrink: 0;
   }}
   .btn-toggle:hover {{ filter: brightness(1.1); transform: scale(1.02); }}
   .btn-toggle:active {{ transform: scale(0.95); }}
-  .btn-toggle svg {{ width: 46px; height: 46px; }}
+  .btn-toggle svg {{ width: 48px; height: 48px; }}
 
   .status {{
-    font-size: 15px; font-weight: 600; color: white; z-index: 10; margin-top: 4px;
-    text-shadow: 0 1px 4px rgba(0,0,0,0.5);
+    font-size: 15px; font-weight: 600; color: {statusColor};
+    letter-spacing: 0.3px;
   }}
 
   .hotkey-container {{
-    font-size: 13px; color: white; display: flex; align-items: center; gap: 6px;
-    margin-top: auto; padding: 6px 12px; background: rgba(255,255,255,0.06); 
+    font-size: 12px; color: rgba(255,255,255,0.5);
+    display: flex; align-items: center; gap: 6px;
+    padding: 6px 14px;
+    background: rgba(255,255,255,0.06);
     border-radius: 8px; cursor: pointer; transition: 0.2s;
   }}
-  .hotkey-container:hover {{ background: rgba(255,255,255,0.15); }}
-  .hotkey-container:active {{ background: rgba(255,255,255,0.05); }}
+  .hotkey-container:hover {{ background: rgba(255,255,255,0.12); color: rgba(255,255,255,0.8); }}
 
   .card-startup {{
-    display: flex; justify-content: space-between; align-items: center; padding: 18px 20px; cursor: pointer;
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 16px 20px; cursor: pointer; border-radius: 18px;
+    transition: background 0.2s;
   }}
   .card-startup:hover {{ background: #2c2c4d; }}
   .card-startup:active {{ background: #1e1e36; }}
 
   .text-col {{ display: flex; flex-direction: column; }}
   .text-title {{ font-size: 14px; font-weight: 600; color: white; }}
-  .text-sub {{ font-size: 12px; color: rgba(255,255,255,0.6); margin-top: 2px; }}
+  .text-sub {{ font-size: 12px; color: rgba(255,255,255,0.5); margin-top: 2px; }}
 
   .toggle-switch {{
-    width: 44px; height: 24px; background: {(_config.GetStartWithWindows() ? "#1259c3" : "rgba(255,255,255,0.2)")};
+    width: 44px; height: 24px;
+    background: {startupBg};
     border-radius: 12px; position: relative; transition: 0.3s;
   }}
   .toggle-knob {{
     width: 18px; height: 18px; background: white; border-radius: 50%;
-    position: absolute; top: 3px; left: {(_config.GetStartWithWindows() ? "23px" : "3px")};
+    position: absolute; top: 3px; left: {knobLeft};
     transition: 0.3s;
   }}
-
 </style>
 </head>
 <body>
@@ -226,12 +236,12 @@ namespace TouchToggle
 <div class='header'>
   <div class='header-text'>
     <h1>Samsung Touch Control</h1>
+    <p>Samsung Galaxy Book 3 360</p>
   </div>
   <button class='btn-close' onclick=""window.chrome.webview.postMessage('close')"">✕</button>
 </div>
 
 <div class='content-area'>
-
   <div class='card card-main'>
     <div class='ring-container'>
       <button class='btn-toggle' onclick=""window.chrome.webview.postMessage('toggle')"">
@@ -239,7 +249,7 @@ namespace TouchToggle
       </button>
     </div>
     <div class='status'>{statusText}</div>
-    <div class='hotkey-container' onclick=""window.chrome.webview.postMessage('change_hotkey')"" title='Alterar atalho'>
+    <div class='hotkey-container' onclick=""window.chrome.webview.postMessage('change_hotkey')"">
       ⌨ {hotkeyText} ✏️
     </div>
   </div>
@@ -253,7 +263,6 @@ namespace TouchToggle
       <div class='toggle-knob'></div>
     </div>
   </div>
-
 </div>
 
 </body>
@@ -283,7 +292,6 @@ namespace TouchToggle
                     case "startup": ToggleStartup(); UpdateUI(); break;
                     case "exit": ExitApp(); break;
                     case "change_hotkey": ChangeHotkeyPrompt(); break;
-                    case "panel": /* Placeholder para futuras configurações */ break;
                     case "close":
                         this.Hide();
                         this.ShowInTaskbar = false;
@@ -312,7 +320,7 @@ namespace TouchToggle
                 }
                 else
                 {
-                    MessageBox.Show("Não foi possível registrar este atalho. Ele pode já estar em uso por outro aplicativo.", "Erro de Atalho", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    MessageBox.Show("Não foi possível registrar este atalho.", "Erro de Atalho", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     _hotkey?.Register(_config.HotkeyModifier, _config.HotkeyKey);
                 }
             }
