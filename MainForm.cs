@@ -65,15 +65,30 @@ namespace TouchToggle
 
         private async void InitializeWebView()
         {
-            await _webView.EnsureCoreWebView2Async(null);
-            _webView.CoreWebView2.Settings.IsStatusBarEnabled = false;
-            _webView.CoreWebView2.Settings.AreDefaultContextMenusEnabled = false;
-            _webView.CoreWebView2.Settings.IsZoomControlEnabled = false;
+            try
+            {
+                // Configura pasta de dados do WebView2 para fora do Arquivos de Programas
+                string userDataFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "TouchToggle", "WebView2");
+                var env = await Microsoft.Web.WebView2.Core.CoreWebView2Environment.CreateAsync(null, userDataFolder);
+                await _webView.EnsureCoreWebView2Async(env);
 
-            _webView.CoreWebView2.WebMessageReceived += OnWebMessage;
-            _webViewReady = true;
+                _webView.CoreWebView2.Settings.IsStatusBarEnabled = false;
+                _webView.CoreWebView2.Settings.AreDefaultContextMenusEnabled = false;
+                _webView.CoreWebView2.Settings.IsZoomControlEnabled = false;
 
-            LoadPanel();
+                _webView.CoreWebView2.WebMessageReceived += OnWebMessage;
+                _webViewReady = true;
+
+                LoadPanel();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(
+                    "Erro ao carregar a interface (WebView2).\n" + ex.Message, 
+                    "Componente Ausente", 
+                    MessageBoxButtons.OK, 
+                    MessageBoxIcon.Warning);
+            }
         }
 
         private void LoadPanel()
