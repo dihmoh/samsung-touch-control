@@ -12,3 +12,8 @@
 **Vulnerability:** Invoking system binaries like `powershell.exe` without an absolute path leaves the application vulnerable to binary planting or path interception if the system's `PATH` environment variable or the application's working directory is compromised. This is especially critical when running processes with elevated privileges (`Verb = "runas"`).
 **Learning:** `Process.Start` resolves relative executable names using the system `PATH`. A malicious actor could place a rogue `powershell.exe` in a directory that appears earlier in the `PATH` or in the working directory, leading to arbitrary code execution, potentially with elevated privileges.
 **Prevention:** Always use fully qualified absolute paths for system executables. For `powershell.exe`, use `Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.System), @"WindowsPowerShell\v1.0\powershell.exe")`.
+
+## 2024-05-24 - [Stored XSS via Local HTML Injection in WebView2]
+**Vulnerability:** User-controlled configuration data (`HotkeyModifier` and `HotkeyKey`) from `config.json` was interpolated directly into an HTML string rendered by a local WebView2 instance without sanitization, leading to Stored XSS if the config file was tampered with.
+**Learning:** Even when rendering "local" HTML without a web server, any user-controlled data (like settings from an unencrypted file in `AppData`) injected into the DOM must be treated as untrusted to prevent local script execution within the application's context.
+**Prevention:** Always use `System.Net.WebUtility.HtmlEncode()` to sanitize any dynamic data before interpolating it into HTML strings, even for locally generated UI views.
