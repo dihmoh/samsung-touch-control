@@ -108,9 +108,9 @@ namespace TouchToggle
             string accentColor = on ? "#1259c3" : "#2c2c4d";
             string statusText = on ? Strings.StatusEnabled : Strings.StatusDisabled;
             string statusColor = on ? "#64a0ff" : "#dc5050";
-            string hotkeyText = Strings.HotkeyLabel(_config.HotkeyModifier, _config.HotkeyKey)
+            string hotkeyText = System.Net.WebUtility.HtmlEncode(Strings.HotkeyLabel(_config.HotkeyModifier, _config.HotkeyKey)
                 .Replace("⌨️  Atalho: ", "Atalho: ")
-                .Replace("⌨️  Shortcut: ", "Shortcut: ");
+                .Replace("⌨️  Shortcut: ", "Shortcut: "));
             string touchIcon = on ? GetTouchIconSvg() : GetTouchOffIconSvg();
             string startupBg = _config.GetStartWithWindows() ? "#1259c3" : "rgba(255,255,255,0.2)";
             string knobLeft = _config.GetStartWithWindows() ? "23px" : "3px";
