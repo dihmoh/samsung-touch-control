@@ -206,6 +206,9 @@ namespace TouchToggle
     border-radius: 8px; cursor: pointer; transition: 0.2s;
   }}
   .hotkey-container:hover {{ background: rgba(255,255,255,0.12); color: rgba(255,255,255,0.8); }}
+  .btn-close:focus-visible, .btn-toggle:focus-visible, .hotkey-container:focus-visible, .card-startup:focus-visible {{
+    outline: 2px solid white; outline-offset: 2px;
+  }}
 
   .card-startup {{
     display: flex; justify-content: space-between; align-items: center;
@@ -238,23 +241,23 @@ namespace TouchToggle
     <h1>Samsung Touch Control</h1>
     <p>Samsung Galaxy Book 3 360</p>
   </div>
-  <button class='btn-close' onclick=""window.chrome.webview.postMessage('close')"">✕</button>
+  <button class='btn-close' onclick=""window.chrome.webview.postMessage('close')"" aria-label='{Strings.AccessibleClose}'>✕</button>
 </div>
 
 <div class='content-area'>
   <div class='card card-main'>
     <div class='ring-container'>
-      <button class='btn-toggle' onclick=""window.chrome.webview.postMessage('toggle')"">
+      <button class='btn-toggle' onclick=""window.chrome.webview.postMessage('toggle')"" aria-label='{Strings.AccessibleToggle}' aria-pressed='{on.ToString().ToLower()}'>
         {touchIcon}
       </button>
     </div>
     <div class='status'>{statusText}</div>
-    <div class='hotkey-container' onclick=""window.chrome.webview.postMessage('change_hotkey')"">
+    <div class='hotkey-container' role='button' tabindex='0' onclick=""window.chrome.webview.postMessage('change_hotkey')"" onkeydown=""if(event.key==='Enter'||event.key===' ') window.chrome.webview.postMessage('change_hotkey')"">
       ⌨ {hotkeyText} ✏️
     </div>
   </div>
 
-  <div class='card card-startup' onclick=""window.chrome.webview.postMessage('startup')"">
+  <div class='card card-startup' role='switch' tabindex='0' aria-checked='{_config.GetStartWithWindows().ToString().ToLower()}' onclick=""window.chrome.webview.postMessage('startup')"" onkeydown=""if(event.key==='Enter'||event.key===' ') window.chrome.webview.postMessage('startup')"">
     <div class='text-col'>
       <span class='text-title'>Inicialização</span>
       <span class='text-sub'>Iniciar com o Windows</span>
