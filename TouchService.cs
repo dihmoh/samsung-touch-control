@@ -70,17 +70,12 @@ namespace TouchToggle
 
 #pragma warning disable CA1416
                 string queryId = id.Replace("\\", "\\\\");
-                using var searcher = new System.Management.ManagementObjectSearcher(
-                    $"SELECT Status FROM Win32_PnPEntity WHERE DeviceID = '{queryId}'");
-
-                foreach (System.Management.ManagementObject device in searcher.Get())
+                using var device = new System.Management.ManagementObject($"Win32_PnPEntity.DeviceID=\"{queryId}\"");
+                string? status = device["Status"]?.ToString();
+                if (status != null)
                 {
-                    string? status = device["Status"]?.ToString();
-                    if (status != null)
-                    {
-                        if (status.Contains("OK")) return true;
-                        if (status.Contains("Error") || status.Contains("Disabled") || status.Contains("Unknown")) return false;
-                    }
+                    if (status.Contains("OK")) return true;
+                    if (status.Contains("Error") || status.Contains("Disabled") || status.Contains("Unknown")) return false;
                 }
 #pragma warning restore CA1416
             }
@@ -115,14 +110,11 @@ namespace TouchToggle
                 {
                     string queryId = id.Replace("\\", "\\\\");
 #pragma warning disable CA1416
-                    using var searcher = new System.Management.ManagementObjectSearcher(
-                        $"SELECT * FROM Win32_PnPDevice WHERE DeviceID = '{queryId}'");
-                    foreach (System.Management.ManagementObject device in searcher.Get())
-                    {
-                        string methodName = enable ? "Enable" : "Disable";
-                        var result = device.InvokeMethod(methodName, null);
-                        if (result != null && result.ToString() == "0") return true;
-                    }
+                    // ⚡ Bolt: Use direct WMI object path instead of ManagementObjectSearcher for faster method invocation
+                    using var device = new System.Management.ManagementObject($"Win32_PnPDevice.DeviceID=\"{queryId}\"");
+                    string methodName = enable ? "Enable" : "Disable";
+                    var result = device.InvokeMethod(methodName, null);
+                    if (result != null && result.ToString() == "0") return true;
 #pragma warning restore CA1416
                 }
                 catch { }
