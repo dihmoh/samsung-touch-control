@@ -69,18 +69,28 @@ namespace TouchToggle
                 if (string.IsNullOrEmpty(id) || !IsValidInstanceId(id)) return null;
 
 #pragma warning disable CA1416
+                // Bolt Optimization: Direct WMI Object Instantiation
+                // Instead of using ManagementObjectSearcher which has to parse WQL,
+                // we instantiate the ManagementObject directly by its WMI path.
+                // This is significantly faster for single-object primary key lookups.
                 string queryId = id.Replace("\\", "\\\\");
-                using var searcher = new System.Management.ManagementObjectSearcher(
-                    $"SELECT Status FROM Win32_PnPEntity WHERE DeviceID = '{queryId}'");
-
-                foreach (System.Management.ManagementObject device in searcher.Get())
+                try
                 {
+                    using var device = new System.Management.ManagementObject($"Win32_PnPEntity.DeviceID=\"{queryId}\"");
+                    device.Get(); // Force population of properties
+
                     string? status = device["Status"]?.ToString();
                     if (status != null)
                     {
                         if (status.Contains("OK")) return true;
                         if (status.Contains("Error") || status.Contains("Disabled") || status.Contains("Unknown")) return false;
                     }
+                }
+                catch (System.Management.ManagementException)
+                {
+                    // If the device is not found, device.Get() throws an exception.
+                    // This mirrors the old behavior where the searcher returned an empty collection.
+                    return null;
                 }
 #pragma warning restore CA1416
             }
@@ -115,14 +125,13 @@ namespace TouchToggle
                 {
                     string queryId = id.Replace("\\", "\\\\");
 #pragma warning disable CA1416
-                    using var searcher = new System.Management.ManagementObjectSearcher(
-                        $"SELECT * FROM Win32_PnPDevice WHERE DeviceID = '{queryId}'");
-                    foreach (System.Management.ManagementObject device in searcher.Get())
-                    {
-                        string methodName = enable ? "Enable" : "Disable";
-                        var result = device.InvokeMethod(methodName, null);
-                        if (result != null && result.ToString() == "0") return true;
-                    }
+                    // Bolt Optimization: Direct WMI Object Instantiation
+                    // Using ManagementObject directly by WMI path instead of a WQL search
+                    // to speed up single-object resolution and method invocation.
+                    using var device = new System.Management.ManagementObject($"Win32_PnPDevice.DeviceID=\"{queryId}\"");
+                    string methodName = enable ? "Enable" : "Disable";
+                    var result = device.InvokeMethod(methodName, null);
+                    if (result != null && result.ToString() == "0") return true;
 #pragma warning restore CA1416
                 }
                 catch { }
