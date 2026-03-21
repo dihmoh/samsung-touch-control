@@ -238,13 +238,13 @@ namespace TouchToggle
     <h1>Samsung Touch Control</h1>
     <p>Samsung Galaxy Book 3 360</p>
   </div>
-  <button class='btn-close' onclick=""window.chrome.webview.postMessage('close')"">✕</button>
+  <button class='btn-close' aria-label='{Strings.AccessibleClose}' title='{Strings.AccessibleClose}' onclick=""window.chrome.webview.postMessage('close')"">✕</button>
 </div>
 
 <div class='content-area'>
   <div class='card card-main'>
     <div class='ring-container'>
-      <button class='btn-toggle' onclick=""window.chrome.webview.postMessage('toggle')"">
+      <button class='btn-toggle' aria-label='{Strings.AccessibleToggle}' title='{Strings.AccessibleToggle}' onclick=""window.chrome.webview.postMessage('toggle')"">
         {touchIcon}
       </button>
     </div>
