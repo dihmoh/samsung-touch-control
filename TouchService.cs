@@ -115,14 +115,14 @@ namespace TouchToggle
                 {
                     string queryId = id.Replace("\\", "\\\\");
 #pragma warning disable CA1416
-                    using var searcher = new System.Management.ManagementObjectSearcher(
-                        $"SELECT * FROM Win32_PnPDevice WHERE DeviceID = '{queryId}'");
-                    foreach (System.Management.ManagementObject device in searcher.Get())
-                    {
-                        string methodName = enable ? "Enable" : "Disable";
-                        var result = device.InvokeMethod(methodName, null);
-                        if (result != null && result.ToString() == "0") return true;
-                    }
+                    // Bolt: ⚡ Optimize WMI method invocation by directly instantiating the ManagementObject
+                    // via its primary key. This bypasses the overhead of parsing a WQL query, avoids evaluating
+                    // a WHERE clause, and completely eliminates the highly expensive fetching of all device
+                    // properties that occurred during "SELECT * FROM ...".
+                    using var device = new System.Management.ManagementObject($"Win32_PnPDevice.DeviceID=\"{queryId}\"");
+                    string methodName = enable ? "Enable" : "Disable";
+                    var result = device.InvokeMethod(methodName, null);
+                    if (result != null && result.ToString() == "0") return true;
 #pragma warning restore CA1416
                 }
                 catch { }
