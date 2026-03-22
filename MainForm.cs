@@ -108,7 +108,12 @@ namespace TouchToggle
             string accentColor = on ? "#1259c3" : "#2c2c4d";
             string statusText = on ? Strings.StatusEnabled : Strings.StatusDisabled;
             string statusColor = on ? "#64a0ff" : "#dc5050";
-            string hotkeyText = Strings.HotkeyLabel(_config.HotkeyModifier, _config.HotkeyKey)
+
+            // 🛡️ Sentinel: Sanitize user-controlled config values to prevent Stored XSS / Local HTML Injection in WebView2
+            string safeModifier = System.Net.WebUtility.HtmlEncode(_config.HotkeyModifier ?? "");
+            string safeKey = System.Net.WebUtility.HtmlEncode(_config.HotkeyKey ?? "");
+
+            string hotkeyText = Strings.HotkeyLabel(safeModifier, safeKey)
                 .Replace("⌨️  Atalho: ", "Atalho: ")
                 .Replace("⌨️  Shortcut: ", "Shortcut: ");
             string touchIcon = on ? GetTouchIconSvg() : GetTouchOffIconSvg();
