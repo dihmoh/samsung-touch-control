@@ -69,18 +69,26 @@ namespace TouchToggle
                 if (string.IsNullOrEmpty(id) || !IsValidInstanceId(id)) return null;
 
 #pragma warning disable CA1416
+                // Optimization: Directly instantiate ManagementObject via path instead of WQL Searcher
+                // This bypasses the WQL parser/evaluator, reducing CPU/IPC overhead for exact PK matches.
                 string queryId = id.Replace("\\", "\\\\");
-                using var searcher = new System.Management.ManagementObjectSearcher(
-                    $"SELECT Status FROM Win32_PnPEntity WHERE DeviceID = '{queryId}'");
+                string wmiPath = $"Win32_PnPEntity.DeviceID=\"{queryId}\"";
 
-                foreach (System.Management.ManagementObject device in searcher.Get())
+                try
                 {
+                    using var device = new System.Management.ManagementObject(wmiPath);
+                    device.Get(); // Throws if device doesn't exist
+
                     string? status = device["Status"]?.ToString();
                     if (status != null)
                     {
                         if (status.Contains("OK")) return true;
                         if (status.Contains("Error") || status.Contains("Disabled") || status.Contains("Unknown")) return false;
                     }
+                }
+                catch (System.Management.ManagementException)
+                {
+                    // Device not found or WMI error
                 }
 #pragma warning restore CA1416
             }
@@ -113,16 +121,20 @@ namespace TouchToggle
 
                 try
                 {
-                    string queryId = id.Replace("\\", "\\\\");
 #pragma warning disable CA1416
-                    using var searcher = new System.Management.ManagementObjectSearcher(
-                        $"SELECT * FROM Win32_PnPDevice WHERE DeviceID = '{queryId}'");
-                    foreach (System.Management.ManagementObject device in searcher.Get())
-                    {
-                        string methodName = enable ? "Enable" : "Disable";
-                        var result = device.InvokeMethod(methodName, null);
-                        if (result != null && result.ToString() == "0") return true;
-                    }
+                    // Optimization: Use direct WMI path instantiation instead of Searcher.
+                    // Note: WMI methods Enable/Disable are on Win32_PnPDevice, but Win32_PnPEntity
+                    // is often used interchangeably or shares the same underlying provider.
+                    // The original code queried Win32_PnPDevice. We'll instantiate that directly.
+                    string queryId = id.Replace("\\", "\\\\");
+                    string wmiPath = $"Win32_PnPDevice.DeviceID=\"{queryId}\"";
+
+                    using var device = new System.Management.ManagementObject(wmiPath);
+                    // No need to call .Get() before invoking methods if the path is fully qualified.
+                    // But we'll try to invoke directly to save time.
+                    string methodName = enable ? "Enable" : "Disable";
+                    var result = device.InvokeMethod(methodName, null);
+                    if (result != null && result.ToString() == "0") return true;
 #pragma warning restore CA1416
                 }
                 catch { }

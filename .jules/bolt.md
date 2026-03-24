@@ -5,3 +5,7 @@
 ## 2024-06-25 - WQL Server-Side Filtering
 **Learning:** Using client-side C# string parsing to filter results from a broad WMI query (e.g., `SELECT DeviceID, Name FROM Win32_PnPEntity WHERE Status = 'OK'`) forces the system to instantiate and transfer many COM objects over IPC, which is slow and memory-intensive.
 **Action:** Always prefer server-side filtering using the `LIKE` or `=` operators directly in the WQL query (e.g., `SELECT DeviceID FROM Win32_PnPEntity WHERE Status = 'OK' AND Name LIKE '%touch screen%'`). This drastically reduces the number of instantiated objects and speeds up execution.
+
+## 2024-10-24 - WMI Query Parsing vs Direct Instantiation
+**Learning:** Using `ManagementObjectSearcher` with a WQL query (e.g., `SELECT Status FROM Win32_PnPEntity WHERE DeviceID='...'`) incurs overhead from parsing and evaluating the WQL query string, even when querying a single object by its primary key.
+**Action:** When querying or modifying a single device by its primary key (like `DeviceID`), bypass `ManagementObjectSearcher` entirely and instantiate `ManagementObject` directly using the exact WMI path (e.g., `new ManagementObject("Win32_PnPEntity.DeviceID=\"...\"")`). Wrap calls like `.Get()` in a `try-catch` to handle missing objects gracefully.
