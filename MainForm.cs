@@ -153,11 +153,12 @@ namespace TouchToggle
     background: rgba(255,255,255,0.15);
     border: none; color: white; font-size: 14px;
     cursor: pointer; display: flex; align-items: center; justify-content: center;
-    transition: background 0.15s;
+    transition: background 0.15s, outline 0.15s;
     -webkit-app-region: no-drag;
   }}
   .btn-close:hover {{ background: rgba(255,255,255,0.25); }}
   .btn-close:active {{ background: rgba(255,255,255,0.35); }}
+  .btn-close:focus-visible { outline: 2px solid white; outline-offset: 2px; }
 
   .content-area {{
     padding: 16px; flex: 1; display: flex; flex-direction: column; gap: 12px;
@@ -187,10 +188,11 @@ namespace TouchToggle
     background: {accentColor};
     border: none; cursor: pointer;
     display: flex; align-items: center; justify-content: center;
-    transition: background 0.3s, transform 0.1s;
+    transition: background 0.3s, transform 0.1s, outline 0.15s;
   }}
   .btn-toggle:hover {{ filter: brightness(1.1); transform: scale(1.02); }}
   .btn-toggle:active {{ transform: scale(0.95); }}
+  .btn-toggle:focus-visible { outline: 3px solid {statusColor}; outline-offset: 4px; }
   .btn-toggle svg {{ width: 48px; height: 48px; }}
 
   .status {{
@@ -206,6 +208,7 @@ namespace TouchToggle
     border-radius: 8px; cursor: pointer; transition: 0.2s;
   }}
   .hotkey-container:hover {{ background: rgba(255,255,255,0.12); color: rgba(255,255,255,0.8); }}
+  .hotkey-container:focus-visible { outline: 2px solid rgba(255,255,255,0.5); outline-offset: 2px; background: rgba(255,255,255,0.12); }
 
   .card-startup {{
     display: flex; justify-content: space-between; align-items: center;
@@ -214,6 +217,7 @@ namespace TouchToggle
   }}
   .card-startup:hover {{ background: #2c2c4d; }}
   .card-startup:active {{ background: #1e1e36; }}
+  .card-startup:focus-visible { outline: 2px solid {accentColor}; outline-offset: 2px; background: #2c2c4d; }
 
   .text-col {{ display: flex; flex-direction: column; }}
   .text-title {{ font-size: 14px; font-weight: 600; color: white; }}
@@ -238,23 +242,23 @@ namespace TouchToggle
     <h1>Samsung Touch Control</h1>
     <p>Samsung Galaxy Book 3 360</p>
   </div>
-  <button class='btn-close' onclick=""window.chrome.webview.postMessage('close')"">✕</button>
+  <button class='btn-close' aria-label='{Strings.AccessibleClose}' title='{Strings.AccessibleClose}' onclick=""window.chrome.webview.postMessage('close')"">✕</button>
 </div>
 
 <div class='content-area'>
   <div class='card card-main'>
     <div class='ring-container'>
-      <button class='btn-toggle' onclick=""window.chrome.webview.postMessage('toggle')"">
+      <button class='btn-toggle' aria-label='{Strings.AccessibleToggle}' title='{Strings.AccessibleToggle}' onclick=""window.chrome.webview.postMessage('toggle')"">
         {touchIcon}
       </button>
     </div>
     <div class='status'>{statusText}</div>
-    <div class='hotkey-container' onclick=""window.chrome.webview.postMessage('change_hotkey')"">
+    <div class='hotkey-container' role='button' tabindex='0' aria-label='{Strings.BalloonHotkey(_config.HotkeyModifier, _config.HotkeyKey)}' onclick=""window.chrome.webview.postMessage('change_hotkey')"" onkeydown=""if(event.key === 'Enter' || event.key === ' ') {{ event.preventDefault(); window.chrome.webview.postMessage('change_hotkey'); }}"">
       ⌨ {hotkeyText} ✏️
     </div>
   </div>
 
-  <div class='card card-startup' onclick=""window.chrome.webview.postMessage('startup')"">
+  <div class='card card-startup' role='switch' tabindex='0' aria-checked='{_config.GetStartWithWindows().ToString().ToLower()}' onclick=""window.chrome.webview.postMessage('startup')"" onkeydown=""if(event.key === 'Enter' || event.key === ' ') {{ event.preventDefault(); window.chrome.webview.postMessage('startup'); }}"">
     <div class='text-col'>
       <span class='text-title'>Inicialização</span>
       <span class='text-sub'>Iniciar com o Windows</span>
