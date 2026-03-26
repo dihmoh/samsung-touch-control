@@ -5,6 +5,7 @@ namespace TouchToggle
     internal class TouchService
     {
         private string? _cachedInstanceId = null;
+        private string? _cachedQueryId = null;
 
         public string? DetectTouchDevice()
         {
@@ -46,6 +47,7 @@ namespace TouchToggle
             if (!string.IsNullOrWhiteSpace(config.DeviceInstanceId))
             {
                 _cachedInstanceId = config.DeviceInstanceId!;
+                _cachedQueryId = _cachedInstanceId.Replace("\\", "\\\\");
                 return _cachedInstanceId;
             }
 
@@ -53,6 +55,7 @@ namespace TouchToggle
             if (detected != null)
             {
                 _cachedInstanceId = detected;
+                _cachedQueryId = _cachedInstanceId.Replace("\\", "\\\\");
                 config.DeviceInstanceId = detected;
                 config.Save();
                 return _cachedInstanceId;
@@ -69,18 +72,19 @@ namespace TouchToggle
                 if (string.IsNullOrEmpty(id) || !IsValidInstanceId(id)) return null;
 
 #pragma warning disable CA1416
-                string queryId = id.Replace("\\", "\\\\");
-                using var searcher = new System.Management.ManagementObjectSearcher(
-                    $"SELECT Status FROM Win32_PnPEntity WHERE DeviceID = '{queryId}'");
-
-                foreach (System.Management.ManagementObject device in searcher.Get())
+                try
                 {
+                    using var device = new System.Management.ManagementObject($"Win32_PnPEntity.DeviceID=\"{_cachedQueryId}\"");
+                    device.Get();
                     string? status = device["Status"]?.ToString();
                     if (status != null)
                     {
                         if (status.Contains("OK")) return true;
                         if (status.Contains("Error") || status.Contains("Disabled") || status.Contains("Unknown")) return false;
                     }
+                }
+                catch (System.Management.ManagementException)
+                {
                 }
 #pragma warning restore CA1416
             }
@@ -108,21 +112,20 @@ namespace TouchToggle
                 string id = GetInstanceId(config);
                 if (string.IsNullOrEmpty(id) || !IsValidInstanceId(id)) return false;
 
+                string queryId = _cachedQueryId ?? id.Replace("\\", "\\\\");
+
                 // Limpa o cache para forçar re-detecção após mudança de estado
                 _cachedInstanceId = null;
+                _cachedQueryId = null;
 
                 try
                 {
-                    string queryId = id.Replace("\\", "\\\\");
 #pragma warning disable CA1416
-                    using var searcher = new System.Management.ManagementObjectSearcher(
-                        $"SELECT * FROM Win32_PnPDevice WHERE DeviceID = '{queryId}'");
-                    foreach (System.Management.ManagementObject device in searcher.Get())
-                    {
-                        string methodName = enable ? "Enable" : "Disable";
-                        var result = device.InvokeMethod(methodName, null);
-                        if (result != null && result.ToString() == "0") return true;
-                    }
+                    using var device = new System.Management.ManagementObject($"Win32_PnPDevice.DeviceID=\"{queryId}\"");
+                    device.Get();
+                    string methodName = enable ? "Enable" : "Disable";
+                    var result = device.InvokeMethod(methodName, null);
+                    if (result != null && result.ToString() == "0") return true;
 #pragma warning restore CA1416
                 }
                 catch { }
