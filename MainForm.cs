@@ -111,6 +111,7 @@ namespace TouchToggle
             string hotkeyText = Strings.HotkeyLabel(_config.HotkeyModifier, _config.HotkeyKey)
                 .Replace("⌨️  Atalho: ", "Atalho: ")
                 .Replace("⌨️  Shortcut: ", "Shortcut: ");
+            hotkeyText = System.Net.WebUtility.HtmlEncode(hotkeyText);
             string touchIcon = on ? GetTouchIconSvg() : GetTouchOffIconSvg();
             string startupBg = _config.GetStartWithWindows() ? "#1259c3" : "rgba(255,255,255,0.2)";
             string knobLeft = _config.GetStartWithWindows() ? "23px" : "3px";
