@@ -100,7 +100,7 @@
 
             // Desenhar botão on/off (pill / switch toggle)
             using var mainBrush = new SolidBrush(mainColor);
-            
+
             // Fundo "pill" (arredondado)
             var path = new System.Drawing.Drawing2D.GraphicsPath();
             int h = 18;
