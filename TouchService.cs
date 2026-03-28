@@ -91,8 +91,8 @@ namespace TouchToggle
                     string id = GetInstanceId(config);
                     if (string.IsNullOrEmpty(id) || !IsValidInstanceId(id)) return null;
 
-                    string script = $"(Get-PnpDevice -InstanceId '{id}').Status";
-                    var result = RunPowerShell(script);
+                    string script = "(Get-PnpDevice -InstanceId $args[0]).Status";
+                    var result = RunPowerShell(script, id);
                     if (result.Contains("OK")) return true;
                     if (result.Contains("Error") || result.Contains("Disabled") || result.Contains("Unknown")) return false;
                 }
@@ -128,8 +128,8 @@ namespace TouchToggle
                 catch { }
 
                 string action = enable ? "Enable-PnpDevice" : "Disable-PnpDevice";
-                string script = $"{action} -InstanceId '{id}' -Confirm:$false";
-                int exitCode = RunPowerShellElevated(script);
+                string script = $"{action} -InstanceId $args[0] -Confirm:$false";
+                int exitCode = RunPowerShellElevated(script, id);
                 return exitCode == 0;
             }
             catch { }
@@ -150,16 +150,20 @@ namespace TouchToggle
             Environment.GetFolderPath(Environment.SpecialFolder.System),
             @"WindowsPowerShell\v1.0\powershell.exe");
 
-        private string RunPowerShell(string script)
+        private string RunPowerShell(string script, params string[] args)
         {
             var psi = new ProcessStartInfo
             {
                 FileName = _powerShellPath,
-                Arguments = $"-NoProfile -NonInteractive -Command \"{script}\"",
                 RedirectStandardOutput = true,
                 UseShellExecute = false,
                 CreateNoWindow = true
             };
+            psi.ArgumentList.Add("-NoProfile");
+            psi.ArgumentList.Add("-NonInteractive");
+            psi.ArgumentList.Add("-Command");
+            psi.ArgumentList.Add($"& {{ {script} }}");
+            foreach (var arg in args) psi.ArgumentList.Add($"'{arg.Replace("'", "''")}'");
 
             using var process = Process.Start(psi);
             string output = process?.StandardOutput.ReadToEnd() ?? "";
@@ -167,19 +171,23 @@ namespace TouchToggle
             return output.Trim();
         }
 
-        private int RunPowerShellElevated(string script)
+        private int RunPowerShellElevated(string script, params string[] args)
         {
             try
             {
                 var psi = new ProcessStartInfo
                 {
                     FileName = _powerShellPath,
-                    Arguments = $"-NoProfile -NonInteractive -Command \"{script}\"",
                     UseShellExecute = false,
                     CreateNoWindow = true,
                     RedirectStandardOutput = true,
                     RedirectStandardError = true
                 };
+                psi.ArgumentList.Add("-NoProfile");
+                psi.ArgumentList.Add("-NonInteractive");
+                psi.ArgumentList.Add("-Command");
+                psi.ArgumentList.Add($"& {{ {script} }}");
+                foreach (var arg in args) psi.ArgumentList.Add($"'{arg.Replace("'", "''")}'");
 
                 using var process = Process.Start(psi);
                 process?.WaitForExit();
@@ -189,10 +197,11 @@ namespace TouchToggle
 
             try
             {
+                string argsStr = string.Join(" ", args.Select(a => $"'{a.Replace("'", "''")}'"));
                 var psi = new ProcessStartInfo
                 {
                     FileName = _powerShellPath,
-                    Arguments = $"-NoProfile -NonInteractive -Command \"{script}\"",
+                    Arguments = $"-NoProfile -NonInteractive -Command \"& {{ {script} }} {argsStr}\"",
                     UseShellExecute = true,
                     Verb = "runas",
                     CreateNoWindow = true
