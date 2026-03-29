@@ -152,10 +152,11 @@ namespace TouchToggle
 
         private string RunPowerShell(string script)
         {
+            string encoded = Convert.ToBase64String(System.Text.Encoding.Unicode.GetBytes(script));
             var psi = new ProcessStartInfo
             {
                 FileName = _powerShellPath,
-                Arguments = $"-NoProfile -NonInteractive -Command \"{script}\"",
+                Arguments = $"-NoProfile -NonInteractive -EncodedCommand {encoded}",
                 RedirectStandardOutput = true,
                 UseShellExecute = false,
                 CreateNoWindow = true
@@ -169,12 +170,13 @@ namespace TouchToggle
 
         private int RunPowerShellElevated(string script)
         {
+            string encoded = Convert.ToBase64String(System.Text.Encoding.Unicode.GetBytes(script));
             try
             {
                 var psi = new ProcessStartInfo
                 {
                     FileName = _powerShellPath,
-                    Arguments = $"-NoProfile -NonInteractive -Command \"{script}\"",
+                    Arguments = $"-NoProfile -NonInteractive -EncodedCommand {encoded}",
                     UseShellExecute = false,
                     CreateNoWindow = true,
                     RedirectStandardOutput = true,
@@ -192,7 +194,7 @@ namespace TouchToggle
                 var psi = new ProcessStartInfo
                 {
                     FileName = _powerShellPath,
-                    Arguments = $"-NoProfile -NonInteractive -Command \"{script}\"",
+                    Arguments = $"-NoProfile -NonInteractive -EncodedCommand {encoded}",
                     UseShellExecute = true,
                     Verb = "runas",
                     CreateNoWindow = true
