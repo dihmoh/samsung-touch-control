@@ -9,3 +9,7 @@
 ## 2024-05-18 - Borderless WinForms Window Navigation and Dragging
 **Learning:** Custom borderless WinForms windows (Form.FormBorderStyle = None) do not inherently support standard keyboard dismissals like the `Escape` key, trapping keyboard users unless a dedicated focusable button is provided. Additionally, labels overlapping custom top bar drag zones steal the `MouseDown` event, creating frustrating "dead zones" where the window cannot be dragged.
 **Action:** Explicitly implement `ProcessCmdKey` to handle the `Escape` key for graceful dismissal. Always apply drag handlers recursively or collectively to the panel and all overlapping labels to ensure a continuous and smooth dragging surface.
+
+## 2026-03-29 - WebView2 Embedded HTML Accessibility
+**Learning:** Embedded HTML UIs rendered in WebView2 must adhere to standard web accessibility guidelines. In addition to ARIA labels on icon-only buttons, interactive `div`s require `role='button'`, `tabindex='0'`, `onkeydown` handlers preventing default scroll behavior, and `:focus-visible` styles for full keyboard navigability within the WinForms host.
+**Action:** When designing WebView2 templates, ensure all interactive HTML elements are natively focusable or explicitly given a `tabindex`, explicitly styled with `:focus-visible`, and wired up to respond to Enter/Spacebar keyboard events mimicking clicks.
