@@ -12,3 +12,7 @@
 **Vulnerability:** Invoking system binaries like `powershell.exe` without an absolute path leaves the application vulnerable to binary planting or path interception if the system's `PATH` environment variable or the application's working directory is compromised. This is especially critical when running processes with elevated privileges (`Verb = "runas"`).
 **Learning:** `Process.Start` resolves relative executable names using the system `PATH`. A malicious actor could place a rogue `powershell.exe` in a directory that appears earlier in the `PATH` or in the working directory, leading to arbitrary code execution, potentially with elevated privileges.
 **Prevention:** Always use fully qualified absolute paths for system executables. For `powershell.exe`, use `Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.System), @"WindowsPowerShell\v1.0\powershell.exe")`.
+## 2026-03-31 - Prevent PowerShell Command Injection
+**Vulnerability:** Passing raw string arguments to powershell.exe via `-Command "{script}"` allows for potential command injection and script truncation if the script contains unescaped quotes or malicious input.
+**Learning:** PowerShell scripts executed via `ProcessStartInfo` should avoid string interpolation for the `-Command` parameter.
+**Prevention:** Convert the PowerShell script to a Base64 Unicode string (`Convert.ToBase64String(System.Text.Encoding.Unicode.GetBytes(script))`) and execute it using the `-EncodedCommand` parameter.
