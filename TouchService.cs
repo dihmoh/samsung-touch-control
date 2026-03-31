@@ -70,17 +70,21 @@ namespace TouchToggle
 
 #pragma warning disable CA1416
                 string queryId = id.Replace("\\", "\\\\");
-                using var searcher = new System.Management.ManagementObjectSearcher(
-                    $"SELECT Status FROM Win32_PnPEntity WHERE DeviceID = '{queryId}'");
-
-                foreach (System.Management.ManagementObject device in searcher.Get())
+                // ⚡ Bolt: Direct WMI object instantiation bypasses WQL parsing overhead.
+                using var device = new System.Management.ManagementObject($"Win32_PnPEntity.DeviceID=\"{queryId}\"");
+                try
                 {
+                    device.Get();
                     string? status = device["Status"]?.ToString();
                     if (status != null)
                     {
                         if (status.Contains("OK")) return true;
                         if (status.Contains("Error") || status.Contains("Disabled") || status.Contains("Unknown")) return false;
                     }
+                }
+                catch (System.Management.ManagementException)
+                {
+                    // Device not found
                 }
 #pragma warning restore CA1416
             }
@@ -115,13 +119,18 @@ namespace TouchToggle
                 {
                     string queryId = id.Replace("\\", "\\\\");
 #pragma warning disable CA1416
-                    using var searcher = new System.Management.ManagementObjectSearcher(
-                        $"SELECT * FROM Win32_PnPDevice WHERE DeviceID = '{queryId}'");
-                    foreach (System.Management.ManagementObject device in searcher.Get())
+                    // ⚡ Bolt: Direct WMI object instantiation bypasses WQL parsing overhead.
+                    using var device = new System.Management.ManagementObject($"Win32_PnPDevice.DeviceID=\"{queryId}\"");
+                    try
                     {
+                        device.Get();
                         string methodName = enable ? "Enable" : "Disable";
                         var result = device.InvokeMethod(methodName, null);
                         if (result != null && result.ToString() == "0") return true;
+                    }
+                    catch (System.Management.ManagementException)
+                    {
+                        // Device not found
                     }
 #pragma warning restore CA1416
                 }
