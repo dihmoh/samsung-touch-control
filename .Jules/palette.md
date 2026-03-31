@@ -9,3 +9,7 @@
 ## 2024-05-18 - Borderless WinForms Window Navigation and Dragging
 **Learning:** Custom borderless WinForms windows (Form.FormBorderStyle = None) do not inherently support standard keyboard dismissals like the `Escape` key, trapping keyboard users unless a dedicated focusable button is provided. Additionally, labels overlapping custom top bar drag zones steal the `MouseDown` event, creating frustrating "dead zones" where the window cannot be dragged.
 **Action:** Explicitly implement `ProcessCmdKey` to handle the `Escape` key for graceful dismissal. Always apply drag handlers recursively or collectively to the panel and all overlapping labels to ensure a continuous and smooth dragging surface.
+
+## 2024-05-19 - WebView2 Keyboard Accessibility and ARIA Roles
+**Learning:** Elements styled as buttons or interactive containers (e.g., `hotkey-container` and `card-startup`) within a WebView2 embedded HTML UI require explicit `tabindex='0'`, `role='button'`, and `onkeydown` handlers with `event.preventDefault()` to fully support keyboard accessibility. Additionally, inline JavaScript with interpolated C# verbatim strings must correctly escape `{` and `}` as `{{` and `}}` to avoid compilation errors.
+**Action:** Always assign `role='button'`, `tabindex='0'`, and corresponding `onkeydown` event handlers (listening for `Enter` and `Space`) to non-button elements behaving as interactive controls. Add `:focus-visible` styles to provide clear visual feedback during keyboard navigation.
