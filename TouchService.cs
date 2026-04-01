@@ -1,8 +1,10 @@
 ﻿using System.Diagnostics;
 
+using System.Text.RegularExpressions;
+
 namespace TouchToggle
 {
-    internal class TouchService
+    internal partial class TouchService
     {
         private string? _cachedInstanceId = null;
 
@@ -141,9 +143,12 @@ namespace TouchToggle
             return SetTouchState(!currentState, config);
         }
 
+        [GeneratedRegex(@"^[A-Za-z0-9\\&_\-\.\:]+\z")]
+        private static partial Regex InstanceIdRegex();
+
         private bool IsValidInstanceId(string id)
         {
-            return System.Text.RegularExpressions.Regex.IsMatch(id, @"^[A-Za-z0-9\\&_\-\.\:]+$");
+            return InstanceIdRegex().IsMatch(id);
         }
 
         private readonly string _powerShellPath = Path.Combine(

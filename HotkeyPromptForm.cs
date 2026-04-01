@@ -42,7 +42,7 @@ namespace TouchToggle
             e.SuppressKeyPress = true;
 
             // Ignorar se apenas modificar for pressionado sozinho
-            if (e.KeyCode == Keys.ControlKey || e.KeyCode == Keys.ShiftKey || 
+            if (e.KeyCode == Keys.ControlKey || e.KeyCode == Keys.ShiftKey ||
                 e.KeyCode == Keys.Menu || e.KeyCode == Keys.LWin || e.KeyCode == Keys.RWin)
                 return;
 
@@ -62,7 +62,7 @@ namespace TouchToggle
             }
 
             string keyStr = e.KeyCode.ToString();
-            
+
             // Limpar números (Ex: D1 vira 1)
             if (keyStr.StartsWith("D") && keyStr.Length == 2 && char.IsDigit(keyStr[1]))
             {
