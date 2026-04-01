@@ -159,6 +159,11 @@ namespace TouchToggle
   .btn-close:hover {{ background: rgba(255,255,255,0.25); }}
   .btn-close:active {{ background: rgba(255,255,255,0.35); }}
 
+  :focus-visible {{
+    outline: 2px solid white;
+    outline-offset: 2px;
+  }}
+
   .content-area {{
     padding: 16px; flex: 1; display: flex; flex-direction: column; gap: 12px;
   }}
@@ -238,23 +243,23 @@ namespace TouchToggle
     <h1>Samsung Touch Control</h1>
     <p>Samsung Galaxy Book 3 360</p>
   </div>
-  <button class='btn-close' onclick=""window.chrome.webview.postMessage('close')"">✕</button>
+  <button class='btn-close' aria-label='{Strings.AccessibleClose}' onclick=""window.chrome.webview.postMessage('close')"">✕</button>
 </div>
 
 <div class='content-area'>
   <div class='card card-main'>
     <div class='ring-container'>
-      <button class='btn-toggle' onclick=""window.chrome.webview.postMessage('toggle')"">
+      <button class='btn-toggle' aria-label='{Strings.AccessibleToggle}' onclick=""window.chrome.webview.postMessage('toggle')"">
         {touchIcon}
       </button>
     </div>
     <div class='status'>{statusText}</div>
-    <div class='hotkey-container' onclick=""window.chrome.webview.postMessage('change_hotkey')"">
+    <div class='hotkey-container' role='button' tabindex='0' onkeydown=""if(event.key==='Enter'||event.key===' '){{event.preventDefault(); window.chrome.webview.postMessage('change_hotkey');}}"" onclick=""window.chrome.webview.postMessage('change_hotkey')"">
       ⌨ {hotkeyText} ✏️
     </div>
   </div>
 
-  <div class='card card-startup' onclick=""window.chrome.webview.postMessage('startup')"">
+  <div class='card card-startup' role='button' tabindex='0' onkeydown=""if(event.key==='Enter'||event.key===' '){{event.preventDefault(); window.chrome.webview.postMessage('startup');}}"" onclick=""window.chrome.webview.postMessage('startup')"">
     <div class='text-col'>
       <span class='text-title'>Inicialização</span>
       <span class='text-sub'>Iniciar com o Windows</span>
