@@ -69,18 +69,26 @@ namespace TouchToggle
                 if (string.IsNullOrEmpty(id) || !IsValidInstanceId(id)) return null;
 
 #pragma warning disable CA1416
+                // Bolt: Direct ManagementObject instantiation via WMI path is O(1) and bypasses WQL parsing/query overhead
                 string queryId = id.Replace("\\", "\\\\");
-                using var searcher = new System.Management.ManagementObjectSearcher(
-                    $"SELECT Status FROM Win32_PnPEntity WHERE DeviceID = '{queryId}'");
+                using var device = new System.Management.ManagementObject($"Win32_PnPEntity.DeviceID=\"{queryId}\"");
 
-                foreach (System.Management.ManagementObject device in searcher.Get())
+                try
                 {
-                    string? status = device["Status"]?.ToString();
-                    if (status != null)
-                    {
-                        if (status.Contains("OK")) return true;
-                        if (status.Contains("Error") || status.Contains("Disabled") || status.Contains("Unknown")) return false;
-                    }
+                    device.Get();
+                }
+                catch (System.Management.ManagementException)
+                {
+                    // Device safely not found (e.g., disconnected). Return null to mimic empty-collection behavior
+                    // and prevent slow fallback paths like PowerShell from triggering unnecessarily.
+                    return null;
+                }
+
+                string? status = device["Status"]?.ToString();
+                if (status != null)
+                {
+                    if (status.Contains("OK")) return true;
+                    if (status.Contains("Error") || status.Contains("Disabled") || status.Contains("Unknown")) return false;
                 }
 #pragma warning restore CA1416
             }
@@ -115,13 +123,20 @@ namespace TouchToggle
                 {
                     string queryId = id.Replace("\\", "\\\\");
 #pragma warning disable CA1416
-                    using var searcher = new System.Management.ManagementObjectSearcher(
-                        $"SELECT * FROM Win32_PnPDevice WHERE DeviceID = '{queryId}'");
-                    foreach (System.Management.ManagementObject device in searcher.Get())
+                    // Bolt: Direct ManagementObject instantiation for faster O(1) device method invocation
+                    using var device = new System.Management.ManagementObject($"Win32_PnPDevice.DeviceID=\"{queryId}\"");
+
+                    try
                     {
+                        // Ensure device exists and properties are loaded before attempting invocation
+                        device.Get();
                         string methodName = enable ? "Enable" : "Disable";
                         var result = device.InvokeMethod(methodName, null);
                         if (result != null && result.ToString() == "0") return true;
+                    }
+                    catch (System.Management.ManagementException)
+                    {
+                        // Safely handled if device not found or invocation fails. Fall through to PowerShell.
                     }
 #pragma warning restore CA1416
                 }
