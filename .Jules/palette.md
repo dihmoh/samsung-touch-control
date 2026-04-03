@@ -9,3 +9,9 @@
 ## 2024-05-18 - Borderless WinForms Window Navigation and Dragging
 **Learning:** Custom borderless WinForms windows (Form.FormBorderStyle = None) do not inherently support standard keyboard dismissals like the `Escape` key, trapping keyboard users unless a dedicated focusable button is provided. Additionally, labels overlapping custom top bar drag zones steal the `MouseDown` event, creating frustrating "dead zones" where the window cannot be dragged.
 **Action:** Explicitly implement `ProcessCmdKey` to handle the `Escape` key for graceful dismissal. Always apply drag handlers recursively or collectively to the panel and all overlapping labels to ensure a continuous and smooth dragging surface.
+## 2025-01-24 - Interactive Elements Focus-Visible and Keyboard Accessibility
+**Learning:** In C# interpolated strings used for HTML generation, CSS block braces  and  must be explicitly escaped as  and  to avoid build errors. Also, adding proper , , and  attributes greatly improves keyboard navigation.
+**Action:** Always test the build after modifying string interpolations, and ensure proper escaping of braces when adding pseudo-classes like  in CSS within C# code.
+## 2025-01-24 - Interactive Elements Focus-Visible and Keyboard Accessibility
+**Learning:** In C# interpolated strings used for HTML generation, CSS block braces `{` and `}` must be explicitly escaped as `{{` and `}}` to avoid build errors. Also, adding proper `tabindex`, `role`, and `onkeydown` attributes greatly improves keyboard navigation.
+**Action:** Always test the build after modifying string interpolations, and ensure proper escaping of braces when adding pseudo-classes like `:focus-visible` in CSS within C# code.
