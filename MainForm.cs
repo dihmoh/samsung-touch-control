@@ -114,6 +114,7 @@ namespace TouchToggle
             string touchIcon = on ? GetTouchIconSvg() : GetTouchOffIconSvg();
             string startupBg = _config.GetStartWithWindows() ? "#1259c3" : "rgba(255,255,255,0.2)";
             string knobLeft = _config.GetStartWithWindows() ? "23px" : "3px";
+            string startupChecked = _config.GetStartWithWindows() ? "true" : "false";
 
             string html = $@"<!DOCTYPE html>
 <html>
@@ -229,6 +230,11 @@ namespace TouchToggle
     position: absolute; top: 3px; left: {knobLeft};
     transition: 0.3s;
   }}
+
+  *:focus-visible {{
+    outline: 2px solid white;
+    outline-offset: 2px;
+  }}
 </style>
 </head>
 <body>
@@ -238,23 +244,23 @@ namespace TouchToggle
     <h1>Samsung Touch Control</h1>
     <p>Samsung Galaxy Book 3 360</p>
   </div>
-  <button class='btn-close' onclick=""window.chrome.webview.postMessage('close')"">✕</button>
+  <button class='btn-close' onclick=""window.chrome.webview.postMessage('close')"" aria-label=""{Strings.AccessibleClose}"" title=""{Strings.AccessibleClose}"">✕</button>
 </div>
 
 <div class='content-area'>
   <div class='card card-main'>
     <div class='ring-container'>
-      <button class='btn-toggle' onclick=""window.chrome.webview.postMessage('toggle')"">
+      <button class='btn-toggle' onclick=""window.chrome.webview.postMessage('toggle')"" aria-label=""{Strings.AccessibleToggle}: {statusText}"" title=""{Strings.AccessibleToggle}: {statusText}"">
         {touchIcon}
       </button>
     </div>
     <div class='status'>{statusText}</div>
-    <div class='hotkey-container' onclick=""window.chrome.webview.postMessage('change_hotkey')"">
+    <div class='hotkey-container' onclick=""window.chrome.webview.postMessage('change_hotkey')"" role=""button"" tabindex=""0"" aria-label=""{hotkeyText}"" onkeydown=""if(event.key === 'Enter' || event.key === ' ') {{ event.preventDefault(); window.chrome.webview.postMessage('change_hotkey'); }}"">
       ⌨ {hotkeyText} ✏️
     </div>
   </div>
 
-  <div class='card card-startup' onclick=""window.chrome.webview.postMessage('startup')"">
+  <div class='card card-startup' onclick=""window.chrome.webview.postMessage('startup')"" role=""switch"" aria-checked=""{startupChecked}"" tabindex=""0"" onkeydown=""if(event.key === 'Enter' || event.key === ' ') {{ event.preventDefault(); window.chrome.webview.postMessage('startup'); }}"">
     <div class='text-col'>
       <span class='text-title'>Inicialização</span>
       <span class='text-sub'>Iniciar com o Windows</span>
