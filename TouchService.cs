@@ -2,7 +2,7 @@
 
 namespace TouchToggle
 {
-    internal class TouchService
+    internal partial class TouchService
     {
         private string? _cachedInstanceId = null;
 
@@ -141,21 +141,29 @@ namespace TouchToggle
             return SetTouchState(!currentState, config);
         }
 
+        [System.Text.RegularExpressions.GeneratedRegex(@"^[A-Za-z0-9\\&_\-\.\:]+\z")]
+        private static partial System.Text.RegularExpressions.Regex InstanceIdRegex();
+
         private bool IsValidInstanceId(string id)
         {
-            return System.Text.RegularExpressions.Regex.IsMatch(id, @"^[A-Za-z0-9\\&_\-\.\:]+$");
+            return InstanceIdRegex().IsMatch(id);
         }
 
         private readonly string _powerShellPath = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.System),
             @"WindowsPowerShell\v1.0\powershell.exe");
 
+        private string GetEncodedScript(string script)
+        {
+            return Convert.ToBase64String(System.Text.Encoding.Unicode.GetBytes(script));
+        }
+
         private string RunPowerShell(string script)
         {
             var psi = new ProcessStartInfo
             {
                 FileName = _powerShellPath,
-                Arguments = $"-NoProfile -NonInteractive -Command \"{script}\"",
+                Arguments = $"-NoProfile -NonInteractive -EncodedCommand {GetEncodedScript(script)}",
                 RedirectStandardOutput = true,
                 UseShellExecute = false,
                 CreateNoWindow = true
@@ -174,7 +182,7 @@ namespace TouchToggle
                 var psi = new ProcessStartInfo
                 {
                     FileName = _powerShellPath,
-                    Arguments = $"-NoProfile -NonInteractive -Command \"{script}\"",
+                    Arguments = $"-NoProfile -NonInteractive -EncodedCommand {GetEncodedScript(script)}",
                     UseShellExecute = false,
                     CreateNoWindow = true,
                     RedirectStandardOutput = true,
@@ -192,7 +200,7 @@ namespace TouchToggle
                 var psi = new ProcessStartInfo
                 {
                     FileName = _powerShellPath,
-                    Arguments = $"-NoProfile -NonInteractive -Command \"{script}\"",
+                    Arguments = $"-NoProfile -NonInteractive -EncodedCommand {GetEncodedScript(script)}",
                     UseShellExecute = true,
                     Verb = "runas",
                     CreateNoWindow = true
